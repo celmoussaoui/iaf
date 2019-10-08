@@ -27,7 +27,6 @@ public class IbisDocExtractor {
                     JSONObject classObject = new JSONObject();
                     classObject.put("name", aClass.name);
                     classObject.put("packageName", aClass.packageName);
-
                     newMethods = new JSONArray();
                     for (AMethod method : aClass.getMethods()) {
                         JSONObject methodObject = new JSONObject();

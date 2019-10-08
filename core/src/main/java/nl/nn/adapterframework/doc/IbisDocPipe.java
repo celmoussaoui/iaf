@@ -530,7 +530,7 @@ public class IbisDocPipe extends FixedForwardPipe {
 		List<IbisMethod> ibisMethods = getIbisMethods(this);
 
 		for (IbisBean ibisBean : ibisBeans) {
-			addIbisBeanToSchema(ibisBean, schema, ibisBeans, ibisMethods, groups);
+				addIbisBeanToSchema(ibisBean, schema, ibisBeans, ibisMethods, groups);
 		}
 		return schema.toXML(true);
 	}
@@ -561,8 +561,17 @@ public class IbisDocPipe extends FixedForwardPipe {
 
 	private static void addIbisBeanToSchema(IbisBean ibisBean, XmlBuilder schema,
 			Set<IbisBean> ibisBeans, List<IbisMethod> ibisMethods, Map<String, TreeSet<IbisBean>> groups) {
+
 		XmlBuilder complexType = new XmlBuilder("complexType", "xs", "http://www.w3.org/2001/XMLSchema");
+		XmlBuilder complexContent = new XmlBuilder("complexContent", "xs", "http://www.w3.org/2001/XMLSchema");
+		XmlBuilder extension = new XmlBuilder("extensions", "xs", "http://www.w3.org/2001/XMLSchema");
+
+		complexContent.addSubElement(extension);
+		complexType.addSubElement(complexContent);
+
+		extension.addAttribute("base", ibisBean.getClazz().getSuperclass().getSimpleName() + "Type");
 		complexType.addAttribute("name", ibisBean.getName() + "Type");
+
 		if (ibisBean.getClazz() != null) {
 			List<XmlBuilder> choices = new ArrayList<XmlBuilder>();
 			final Map<String, Integer> sortWeight;
@@ -635,10 +644,10 @@ public class IbisDocPipe extends FixedForwardPipe {
 				for (XmlBuilder choice : choices) {
 					sequence.addSubElement(choice);
 				}
-				complexType.addSubElement(sequence);
+				complexContent.addSubElement(sequence);
 			}
 		}
-		addPropertiesToSchemaOrHtml(ibisBean, complexType, null);
+		addPropertiesToSchemaOrHtml(ibisBean, complexContent, null);
 		schema.addSubElement(complexType);
 	}
 
@@ -780,7 +789,7 @@ public class IbisDocPipe extends FixedForwardPipe {
 	}
 
 	private static void getBeanProperties(Class<?> clazz, String verb, Map<String, Method> beanProperties) {
-		Method[] methods = clazz.getMethods();
+		Method[] methods = clazz.getDeclaredMethods();
 		for (int i = 0; i < methods.length; i++) {
 			Class<?> returnType = methods[i].getReturnType();
 			if (returnType == String.class || returnType.isPrimitive()) {
