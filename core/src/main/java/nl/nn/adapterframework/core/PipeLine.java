@@ -752,7 +752,7 @@ public class PipeLine implements ICacheEnabled, HasStatistics {
 		return outputWrapper;
 	}
 
-	@IbisDoc({"timeout (in seconds) of transaction started to process a message.", "<code>0</code> (use system default)</code>"})
+	@IbisDoc({"timeout (in seconds) of transaction started to process a message.", "<code>0</code> (use system default)"})
 	public void setTransactionTimeout(int i) {
 		transactionTimeout = i;
 	}
