@@ -25,9 +25,7 @@ import nl.nn.adapterframework.util.Misc;
 /**
  * Pipe that generates an UUID (Universally Unique Identifier).
  *
- * 
- * If {@link #setType(String) type} is set to <code>numeric</code>, a UUID with fixed length 31 will be generated.
- * If {@link #setType(String) type} is set to <code>alphanumeric</code>, the UUID will not have a fixed length which will be about 42.
+ *
  * Only type <code>alphanumeric</code> guarantees a 100% unique identifier, type <code>numeric</code> has a 0.01% chance of exactly the same id in case of multiple calls on the same host within a few milliseconds.  
  * 
  * @author Peter Leeuwenburgh

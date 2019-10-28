@@ -27,10 +27,6 @@ import org.apache.commons.lang.StringUtils;
  * Pipe that increases the integer values of a session variable.
  * Used to in combination with {@link CompareIntegerPipe} to contstruct loops.
  *
- * <tr><td>{@link #setSessionKey(String) sessionKey}</td><td>reference to the session variable whose value is to be increased</td><td></td></tr>
- * <tr><td>{@link #setIncrement(int) increment}</td><td>amount to increment the value</td><td>1</td></tr>
- * </table>
- * </p>
  * @author Richard Punt / Gerrit van Brakel
  */
 public class IncreaseIntegerPipe extends FixedForwardPipe {
