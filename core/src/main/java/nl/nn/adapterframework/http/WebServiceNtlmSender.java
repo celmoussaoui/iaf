@@ -27,6 +27,7 @@ import jcifs.ntlmssp.Type2Message;
 import jcifs.ntlmssp.Type3Message;
 import jcifs.util.Base64;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
@@ -61,10 +62,10 @@ import nl.nn.adapterframework.util.CredentialFactory;
 import nl.nn.adapterframework.util.Misc;
 
 /**
- * Sender that sends a message via a WebService based on NTLM authentication.
  *
  * @author  Peter Leeuwenburgh
  */
+@IbisDescription(" Sender that sends a message via a WebService based on NTLM authentication.") 
 public class WebServiceNtlmSender extends SenderWithParametersBase implements
 		HasPhysicalDestination {
 

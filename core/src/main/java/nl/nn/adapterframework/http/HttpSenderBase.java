@@ -76,6 +76,7 @@ import nl.nn.adapterframework.core.Resource;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
 import nl.nn.adapterframework.core.TimeoutGuardSenderWithParametersBase;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -89,7 +90,6 @@ import nl.nn.adapterframework.util.TransformerPool;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Sender for the HTTP protocol using GET, POST, PUT or DELETE using httpclient 4+
  * 
  * <p><b>Parameters:</b></p>
  * <p>Any parameters present are appended to the request as request-parameters except the headersParams list which are added as http headers</p>

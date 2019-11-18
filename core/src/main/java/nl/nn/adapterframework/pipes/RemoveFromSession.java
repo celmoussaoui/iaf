@@ -22,12 +22,11 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Removes a key specified by <code>{@link #setSessionKey(String) sessionKey}</code>
- * from the {@link IPipeLineSession pipeLineSession}.
  *
  * @author Peter Leeuwenburgh
  *

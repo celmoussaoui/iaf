@@ -19,12 +19,12 @@ import java.io.Writer;
 import java.sql.ResultSet;
 
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.jdbc.dbms.IDbmsSupport;
 
 
 /**
- * {@link nl.nn.adapterframework.batch.IResultHandler ResultHandler} that writes the transformed record to a CLOB.
  * 
  * <table border="1">
  * <tr><th>nested elements</th><th>description</th></tr>
@@ -35,6 +35,7 @@ import nl.nn.adapterframework.jdbc.dbms.IDbmsSupport;
  * @author  Gerrit van Brakel
  * @since   4.7
  */
+@IbisDescription(" {@link nl.") 
 public class Result2ClobWriter extends Result2LobWriterBase {
 	
 	protected Object getLobHandle(IDbmsSupport dbmsSupport, ResultSet rs) throws SenderException {

@@ -27,6 +27,7 @@ import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.SenderWithParametersBase;
 import nl.nn.adapterframework.core.TimeOutException;
 import nl.nn.adapterframework.dispatcher.DispatcherManager;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.http.HttpSender;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -35,7 +36,6 @@ import nl.nn.adapterframework.util.Misc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Posts a message to another IBIS-adapter or application in the same JVM using IbisServiceDispatcher.
  *
  * An IbisJavaSender makes a call to a Receiver with a {@link nl.nn.adapterframework.receivers.JavaListener JavaListener}
  * or any other application in the same JVM that has registered a <code>RequestProcessor</code> with the IbisServiceDispatcher.
@@ -57,6 +57,7 @@ import org.apache.commons.lang.StringUtils;
  * @author  Gerrit van Brakel
  * @since   4.4.5
  */
+@IbisDescription(" Posts a message to another IBIS-adapter or application in the same JVM using IbisServiceDispatcher.") 
 public class IbisJavaSender extends SenderWithParametersBase implements HasPhysicalDestination {
 	private String name;
 	private String serviceName;

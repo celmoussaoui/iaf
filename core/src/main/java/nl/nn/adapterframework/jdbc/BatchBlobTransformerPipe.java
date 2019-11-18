@@ -22,11 +22,11 @@ import java.sql.ResultSet;
 import nl.nn.adapterframework.configuration.ConfigurationWarnings;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.JdbcUtil;
 
 /**
- * Pipe that batch-transforms the lines in a CLOB.
  *
  * <table border="1">
  * <tr><th>nested elements</th><th>description</th></tr>
@@ -44,6 +44,7 @@ import nl.nn.adapterframework.util.JdbcUtil;
  * @author  Gerrit van Brakel
  * @since   4.7
  */
+@IbisDescription(" Pipe that batch-transforms the lines in a CLOB.") 
 public class BatchBlobTransformerPipe extends BatchTransformerPipeBase {
 
 	protected Reader getReader(ResultSet rs, String charset, String streamId, IPipeLineSession session) throws SenderException {

@@ -21,11 +21,11 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 
 
 /**
- * Selects an exitState, based on the last (filename) part of the path that is the input.
  * 
  * <p><b>Exits:</b>
  * <table border="1">
@@ -36,6 +36,7 @@ import nl.nn.adapterframework.doc.IbisDoc;
  * @author  Gerrit van Brakel
  * @since   4.8
  */
+@IbisDescription(" Selects an exitState, based on the last (filename) part of the path that is the input.") 
 public class FilenameSwitch extends AbstractPipe {
 	
     private String notFoundForwardName=null;

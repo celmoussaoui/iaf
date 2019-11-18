@@ -29,13 +29,14 @@ import nl.nn.adapterframework.core.ListenerException;
 import nl.nn.adapterframework.core.PipeLineExit;
 import nl.nn.adapterframework.core.PipeLineResult;
 import nl.nn.adapterframework.core.PipeLineSessionBase;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.DateUtils;
 import nl.nn.adapterframework.util.LogUtil;
 import nl.nn.adapterframework.util.StreamUtil;
 
 /**
- * {@link IPullingListener listener} that looks in a {@link IBasicFileSystem FileSystem} for files.
+ *
  * When a file is found, it is moved to an process-folder, so that it isn't found more then once.  
  * The name of the moved file is passed to the pipeline.  
  *

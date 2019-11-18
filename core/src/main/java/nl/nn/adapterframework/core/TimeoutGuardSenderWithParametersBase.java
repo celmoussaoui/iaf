@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 
 import org.apache.commons.lang.StringUtils;
@@ -30,8 +31,6 @@ import org.apache.log4j.NDC;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 
 /**
- * Extension to SenderWithParametersBase for interrupting processing when
- * timeout is exceeded.
  * 
  * 
  * @author Peter Leeuwenburgh

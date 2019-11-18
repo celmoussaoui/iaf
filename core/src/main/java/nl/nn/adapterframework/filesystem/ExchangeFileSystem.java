@@ -67,6 +67,7 @@ import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter;
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.HasPhysicalDestination;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.receivers.ExchangeMailListener;
 import nl.nn.adapterframework.util.CredentialFactory;
@@ -74,10 +75,10 @@ import nl.nn.adapterframework.util.LogUtil;
 import nl.nn.adapterframework.util.StreamUtil;
 
 /**
- * Implementation of a {@link IBasicFileSystem} of an Exchange Mail Inbox.
  * 
  * @author Gerrit van Brakel, after {@link ExchangeMailListener} by Peter Leeuwenburgh
  */
+@IbisDescription(" Implementation of a {@link IBasicFileSystem} of an Exchange Mail Inbox.") 
 public class ExchangeFileSystem implements IWithAttachments<Item,Attachment>, HasPhysicalDestination {
 	protected Logger log = LogUtil.getLogger(this);
 

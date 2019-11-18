@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -53,7 +54,7 @@ import nl.nn.adapterframework.util.LogUtil;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Base class for {@link IPipe Pipe}.
+ *
  * A Pipe represents an action to take in a {@link PipeLine Pipeline}. This class is meant to be extended
  * for defining steps or actions to take to complete a request. <br/>
  * The contract is that a pipe is created (by the digester), {@link #setName(String)} is called and

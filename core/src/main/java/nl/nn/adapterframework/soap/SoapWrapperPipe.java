@@ -31,6 +31,7 @@ import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 import nl.nn.adapterframework.core.PipeStartException;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.pipes.FixedForwardPipe;
@@ -40,7 +41,6 @@ import nl.nn.adapterframework.util.TransformerPool;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Pipe to wrap or unwrap a message from/into a SOAP Envelope.
  *
  * <table border="1">
  * <tr><th>nested elements</th><th>description</th></tr>
@@ -50,6 +50,7 @@ import nl.nn.adapterframework.util.XmlUtils;
 
  * @author Peter Leeuwenburgh
  */
+@IbisDescription(" Pipe to wrap or unwrap a message from/into a SOAP Envelope.") 
 public class SoapWrapperPipe extends FixedForwardPipe {
 	protected static final String DEFAULT_SOAP_HEADER_SESSION_KEY = "soapHeader";
 

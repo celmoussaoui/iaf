@@ -38,6 +38,7 @@ import nl.nn.adapterframework.core.ISender;
 import nl.nn.adapterframework.core.PipeStartException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.stream.IThreadCreator;
 import nl.nn.adapterframework.stream.InputMessageAdapter;
@@ -54,12 +55,13 @@ import nl.nn.adapterframework.xml.SaxException;
 import nl.nn.adapterframework.xml.TransformerFilter;
 
 /**
- * Sends a message to a Sender for each child element of the input XML.
+ *
  * Input can be a String containing XML, a filename (set processFile true), an InputStream or a Reader.
  * 
  * @author Gerrit van Brakel
  * @since 4.6.1
  */
+@IbisDescription(" Sends a message to a Sender for each child element of the input XML.") 
 public class ForEachChildElementPipe extends IteratingPipe<String> implements IThreadCreator {
 
 	public final int DEFAULT_XSLT_VERSION=1; // currently only Xalan supports XSLT Streaming

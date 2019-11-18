@@ -24,18 +24,19 @@ import java.util.List;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.FileUtils;
 
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Pipe for deleting files.
  *
  * 
  * @author John Dekker
  * @since  4.2
  */
+@IbisDescription(" Pipe for deleting files.") 
 public class CleanupOldFilesPipe extends FixedForwardPipe {
 	
 	private String filePattern;

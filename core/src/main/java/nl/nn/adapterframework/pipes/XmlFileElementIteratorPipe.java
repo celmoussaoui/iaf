@@ -35,14 +35,15 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Sends a message to a Sender for each element in the XML file that the input message refers to.
  * 
  * @author  Peter Leeuwenburgh
  */
+@IbisDescription(" Sends a message to a Sender for each element in the XML file that the input message refers to.") 
 public class XmlFileElementIteratorPipe extends IteratingPipe<String> {
 
 	private String elementName = null;

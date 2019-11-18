@@ -37,6 +37,7 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.INamedObject;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.ParameterException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterList;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -49,7 +50,7 @@ import org.apache.log4j.Logger;
 
 
 /**
- * FileHandler, available to the Ibis developer as {@link nl.nn.adapterframework.senders.FileSender} and
+ *nn.adapterframework.senders.FileSender} and
  * {@link nl.nn.adapterframework.pipes.FilePipe}, allows to write to or read from a file.
  * 
  * <p>
@@ -83,6 +84,7 @@ import org.apache.log4j.Logger;
  * @author Jaco de Groot (***@dynasol.nl)
  *
  */
+@IbisDescription(" FileHandler, available to the Ibis developer as {@link nl.") 
 public class FileHandler {
 	protected Logger log = LogUtil.getLogger(this);
 	private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();

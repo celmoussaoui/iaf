@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.log4j.NDC;
 
@@ -35,7 +36,6 @@ import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.parameters.ParameterValueList;
 
 /**
- * Extension to FixedForwardPipe for interrupting processing when timeout is exceeded.
  * 
  * <p>
  * <table border="1">
@@ -47,7 +47,7 @@ import nl.nn.adapterframework.parameters.ParameterValueList;
  * 
  * @author Peter Leeuwenburgh
  */
-
+@IbisDescription(" Extension to FixedForwardPipe for interrupting processing when timeout is exceeded.") 
 public class TimeoutGuardPipe extends FixedForwardPipe {
 
 	private boolean throwException = true;

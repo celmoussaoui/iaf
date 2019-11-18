@@ -20,11 +20,11 @@ import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Selects an exitState, based on if the input is a XML string.
  * 
  * The input is a XML string if it, after removing leading white-space characters, starts with '<'.
  * 
@@ -32,7 +32,7 @@ import org.apache.commons.lang.StringUtils;
  * @author  Peter Leeuwenburgh
  * @since   4.3
  */
-
+@IbisDescription(" Selects an exitState, based on if the input is a XML string.")
 public class IsXmlIfPipe extends AbstractPipe {
 
 	private String thenForwardName = "then";

@@ -34,6 +34,7 @@ import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.errormessageformatters.ErrorMessageFormatter;
 import nl.nn.adapterframework.util.FileUtils;
@@ -41,7 +42,6 @@ import nl.nn.adapterframework.util.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Pipe to zip or unzip a message or file.  
  * 
  * <p><b>Exits:</b>
  * <table border="1">
@@ -54,6 +54,7 @@ import org.apache.commons.lang.StringUtils;
  * @author John Dekker
  * @author Jaco de Groot (***@dynasol.nl)
  */
+@IbisDescription(" Pipe to zip or unzip a message or file.") 
 public class CompressPipe extends FixedForwardPipe {
 
 	private final static String EXCEPTIONFORWARD = "exception";

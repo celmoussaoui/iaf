@@ -17,6 +17,7 @@ package nl.nn.adapterframework.pipes;
 
 import java.net.URL;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.mozilla.javascript.*;
 
@@ -35,7 +36,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 
 /**
- * Rhino JavaScript Runtime Factory Pipe.
  * 
  * This pipe takes all input and pushes it into javascript runtime.
  * The invoke method is called to initialize the runtime
@@ -58,6 +58,7 @@ import org.apache.commons.lang.SystemUtils;
  * 
  * @author Barry Jacobs
  */
+@IbisDescription(" Rhino JavaScript Runtime Factory Pipe.") 
 public class RhinoPipe extends FixedForwardPipe {
 
 	private String fileName;

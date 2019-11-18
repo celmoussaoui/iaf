@@ -23,12 +23,13 @@ import java.io.InputStream;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.ClassUtils;
 import nl.nn.adapterframework.util.FileUtils;
 
 /**
- * Pipe for transforming a (batch)file with records. Records in the file must be separated
+ * Records in the file must be separated
  * with new line characters.
  * You can use the &lt;child&gt; tag to register RecordHandlers, RecordHandlerManagers, ResultHandlers
  * and RecordHandlingFlow elements. This is deprecated, however. Since 4.7 one should use &lt;manager&gt;,
@@ -54,6 +55,7 @@ import nl.nn.adapterframework.util.FileUtils;
  * 
  * @author  John Dekker
  */
+@IbisDescription(" Pipe for transforming a (batch)file with records.") 
 public class BatchFileTransformerPipe extends StreamTransformerPipe {
 
 	private String move2dirAfterTransform;

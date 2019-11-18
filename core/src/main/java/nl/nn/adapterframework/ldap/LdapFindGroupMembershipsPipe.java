@@ -30,11 +30,12 @@ import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 import nl.nn.adapterframework.core.PipeStartException;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.XmlBuilder;
 
 /**
- * Pipe that returns the memberships of a userDN.
+ *
  * The input is a fullDn, of a user or a group.
  * </pre></code> <br/>
  * Sample result:<br/><code><pre>
@@ -61,6 +62,7 @@ import nl.nn.adapterframework.util.XmlBuilder;
  * 
  * @author Gerrit van Brakel
  */
+@IbisDescription(" Pipe that returns the memberships of a userDN.") 
 public class LdapFindGroupMembershipsPipe extends LdapQueryPipeBase implements ICacheEnabled<String,Set<String>> {
 	
 	private boolean recursiveSearch = true;

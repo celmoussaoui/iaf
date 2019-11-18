@@ -19,13 +19,13 @@ import java.io.Writer;
 import java.sql.ResultSet;
 
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.jdbc.dbms.IDbmsSupport;
 import nl.nn.adapterframework.util.JdbcUtil;
 
 
 /**
- * {@link nl.nn.adapterframework.batch.IResultHandler ResultHandler} that writes the transformed record to a BLOB.
  * 
  * <table border="1">
  * <tr><th>nested elements</th><th>description</th></tr>
@@ -36,6 +36,7 @@ import nl.nn.adapterframework.util.JdbcUtil;
  * @author  Gerrit van Brakel
  * @since   4.7
  */
+@IbisDescription(" {@link nl.") 
 public class Result2BlobWriter extends Result2LobWriterBase {
 	
 	protected Object getLobHandle(IDbmsSupport dbmsSupport, ResultSet rs) throws SenderException {

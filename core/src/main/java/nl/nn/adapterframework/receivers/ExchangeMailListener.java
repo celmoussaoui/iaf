@@ -40,6 +40,7 @@ import microsoft.exchange.webservices.data.property.complex.MimeContent;
 import nl.nn.adapterframework.configuration.ConfigurationWarnings;
 import nl.nn.adapterframework.core.HasPhysicalDestination;
 import nl.nn.adapterframework.core.ListenerException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.filesystem.ExchangeFileSystem;
 import nl.nn.adapterframework.filesystem.FileSystemListener;
@@ -47,7 +48,6 @@ import nl.nn.adapterframework.util.ClassUtils;
 import nl.nn.adapterframework.util.XmlBuilder;
 
 /**
- * Implementation of a {@link nl.nn.adapterframework.filesystem.FileSystemListener
  * FileSystemListener} that enables a
  * {@link nl.nn.adapterframework.receivers.GenericReceiver} to look in a folder
  * for received mails. When a mail is found, it is moved to an output folder (or
@@ -79,6 +79,7 @@ import nl.nn.adapterframework.util.XmlBuilder;
  * 
  * @author Peter Leeuwenburgh, Gerrit van Brakel
  */
+@IbisDescription(" Implementation of a {@link nl.") 
 public class ExchangeMailListener extends FileSystemListener<Item,ExchangeFileSystem> implements HasPhysicalDestination {
 
 	public final String EMAIL_MESSAGE_TYPE="email";

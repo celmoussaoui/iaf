@@ -27,6 +27,7 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.parameters.ParameterValueList;
@@ -36,7 +37,6 @@ import nl.nn.adapterframework.stream.StreamingSenderBase;
 import nl.nn.adapterframework.util.Misc;
 
 /**
- * Base class for Senders that use a {@link IBasicFileSystem FileSystem}.
  * 
  * <table align="top">
  * <tr><th>Action</th><th>Description</th><th>Configuration</th></tr>
@@ -65,6 +65,7 @@ import nl.nn.adapterframework.util.Misc;
  * 
  * @author Gerrit van Brakel
  */
+@IbisDescription(" Base class for Senders that use a {@link IBasicFileSystem FileSystem}.") 
 public class FileSystemSender<F, FS extends IBasicFileSystem<F>> extends StreamingSenderBase {
 	
 	private FS fileSystem;

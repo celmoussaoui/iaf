@@ -41,6 +41,7 @@ import nl.nn.adapterframework.core.ISenderWithParameters;
 import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.parameters.ParameterList;
@@ -50,7 +51,6 @@ import nl.nn.adapterframework.parameters.ParameterValueList;
 import nl.nn.adapterframework.soap.SoapWrapper;
 
 /**
- * This class sends messages with JMS.
  *
  * <table border="1">
  * <p><b>Parameters:</b>
@@ -62,7 +62,7 @@ import nl.nn.adapterframework.soap.SoapWrapper;
  * 
  * @author Gerrit van Brakel
  */
-
+@IbisDescription(" This class sends messages with JMS.") 
 public class JmsSender extends JMSFacade implements ISenderWithParameters, IPostboxSender {
 	private String replyToName = null;
 	private int deliveryMode = 0;

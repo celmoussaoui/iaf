@@ -21,13 +21,13 @@ import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.SenderWithParametersBase;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.parameters.ParameterValueList;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Performs a reload on database config .
  *
  * <p><b>Exits:</b>
  * <table border="1">
@@ -40,6 +40,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * @author	Lars Sinke
  * @author	Niels Meijer
  */
+@IbisDescription(" Performs a reload on database config .") 
 public class ReloadSender extends SenderWithParametersBase implements ConfigurationAware {
 
 	private Configuration configuration;

@@ -26,6 +26,7 @@ import java.util.Set;
 
 import javax.xml.validation.ValidatorHandler;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -46,7 +47,6 @@ import nl.nn.adapterframework.util.Variant;
 import nl.nn.adapterframework.xml.NonResolvingExternalEntityResolver;
 
 /**
- * baseclass for validating input message against a XML-Schema.
  *
  * N.B. noNamespaceSchemaLocation may contain spaces, but not if the schema is stored in a .jar or .zip file on the class path.
  * @author Johan Verrips IOS

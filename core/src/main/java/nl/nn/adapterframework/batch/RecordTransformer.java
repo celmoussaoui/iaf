@@ -31,6 +31,7 @@ import java.util.Vector;
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.configuration.ConfigurationWarnings;
 import nl.nn.adapterframework.core.IPipeLineSession;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.util.ClassUtils;
@@ -39,12 +40,12 @@ import nl.nn.adapterframework.util.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Translate a record using an outputFields description. 
  * 
  *
  * 
  * @author  John Dekker
  */
+@IbisDescription(" Translate a record using an outputFields description.") 
 public class RecordTransformer extends AbstractRecordHandler {
 
 	private String outputSeparator;

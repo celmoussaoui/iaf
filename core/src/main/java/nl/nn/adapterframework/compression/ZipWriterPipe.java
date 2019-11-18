@@ -29,6 +29,7 @@ import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.PipeLine;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -40,7 +41,6 @@ import nl.nn.adapterframework.util.StreamUtil;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Pipe that creates a ZipStream.
  * 
  * For action=open, the Pipe will create a new zip, that will be written to a file or stream specified by the input message, that must be a:<ul>
  * <li>String specifying a filename</li>
@@ -58,6 +58,7 @@ import org.apache.commons.lang.StringUtils;
  * @author  Gerrit van Brakel
  * @since   4.9.10
  */
+@IbisDescription(" Pipe that creates a ZipStream.") 
 public class ZipWriterPipe extends FixedForwardPipe {
 
  	private static final String ACTION_OPEN="open";

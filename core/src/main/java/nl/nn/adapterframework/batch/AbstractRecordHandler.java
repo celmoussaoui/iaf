@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -36,8 +37,7 @@ import nl.nn.adapterframework.util.ClassUtils;
 import nl.nn.adapterframework.util.LogUtil;
 
 /**
- * Abstract class that contains functionality for parsing the field values from a 
- * record (line). Fields in the record are either separated with a separator or have
+ * Fields in the record are either separated with a separator or have
  * a fixed position in the line.
  * 
  * @author  John Dekker

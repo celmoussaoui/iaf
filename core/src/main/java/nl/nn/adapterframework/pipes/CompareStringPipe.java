@@ -15,6 +15,7 @@
 */
 package nl.nn.adapterframework.pipes;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Node;
@@ -33,7 +34,6 @@ import nl.nn.adapterframework.parameters.ParameterValueList;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Pipe that compares lexicographically two strings.
  *
  * <tr><th>nested elements</th><th>description</th></tr>
  * <tr><td>{@link Parameter param}</td><td>the parameters <code>operand1</code> and <code>operand2</code> are compared. If one of these parameters doesn't exist the input message is taken.
@@ -62,6 +62,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * </p>
  * @author  Peter Leeuwenburgh
  */
+@IbisDescription(" Pipe that compares lexicographically two strings.") 
 public class CompareStringPipe extends AbstractPipe {
 
 	private final static String LESSTHANFORWARD = "lessthan";

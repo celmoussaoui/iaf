@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -31,8 +32,6 @@ import nl.nn.adapterframework.pipes.XmlValidator;
 import nl.nn.adapterframework.util.LogUtil;
 
 /**
- * XmlValidator that will automatically add the SOAP envelope XSD to the set of
- * XSD's used for validation.
  *
  * <b><A name="note1">Note 1:</A></b>
  * Before the <code>outputSoapBody</code> attribute was introduced, two validators were used for a request-reply pattern (an inputValidator for the request and an outputValidator for the reply).
@@ -42,6 +41,7 @@ import nl.nn.adapterframework.util.LogUtil;
  * @author Michiel Meeuwissen
  * @author Jaco de Groot
  */
+@IbisDescription("XmlValidator that will automatically add the SOAP envelope XSD to the set of XSD's used for validation.") 
 public class SoapValidator extends Json2XmlValidator {
 
     private static final Logger LOG = LogUtil.getLogger(SoapValidator.class);

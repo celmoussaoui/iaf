@@ -23,6 +23,7 @@ import javax.json.JsonStructure;
 import javax.xml.transform.Source;
 import javax.xml.validation.ValidatorHandler;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xerces.xs.PSVIProvider;
@@ -43,7 +44,6 @@ import nl.nn.adapterframework.validation.ValidationContext;
 import nl.nn.adapterframework.validation.XmlValidatorException;
 
 /**
-*<code>Pipe</code> that validates the XML or JSON input message against a XML-Schema and returns either XML or JSON.
 *
 * <table border="1">
 * <tr><th>state</th><th>condition</th></tr>
@@ -55,7 +55,8 @@ import nl.nn.adapterframework.validation.XmlValidatorException;
 * </table>
 * <br>
 * @author Gerrit van Brakel
-*/
+ */
+@IbisDescription("<code>Pipe</code> that validates the XML or JSON input message against a XML-Schema and returns either XML or JSON.") 
 public class Json2XmlValidator extends XmlValidator {
 
 	public static final String INPUT_FORMAT_SESSION_KEY_PREFIX = "Json2XmlValidator.inputformat ";

@@ -21,6 +21,7 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.configuration.ConfigurationWarnings;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -34,7 +35,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 
 /**
- * Sender that sends a message via a WebService.
  * 
  * 
  * @author Gerrit van Brakel
@@ -42,6 +42,7 @@ import org.apache.http.client.utils.URIBuilder;
  * @since 7.0
  * @version 2.0
  */
+@IbisDescription(" Sender that sends a message via a WebService.") 
 public class WebServiceSender extends HttpSender {
 
 	private boolean soap = true;

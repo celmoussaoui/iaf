@@ -26,15 +26,16 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 
 
 /**
- * Returns random password.
  *
  * @author  Milan Tomc
  * @since   4.5
  */
+@IbisDescription(" Returns random password.") 
 public class PasswordGeneratorPipe extends FixedForwardPipe {
 	
 	private String lCharacters="abcdefghijklmnopqrstuvwxyz";

@@ -28,6 +28,7 @@ import nl.nn.adapterframework.cache.ICacheAdapter;
 import nl.nn.adapterframework.configuration.Configuration;
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.configuration.ConfigurationWarnings;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.errormessageformatters.ErrorMessageFormatter;
 import nl.nn.adapterframework.pipes.AbstractPipe;
@@ -53,8 +54,6 @@ import org.apache.log4j.NDC;
 import org.springframework.beans.factory.NamedBean;
 import org.springframework.core.task.TaskExecutor;
 /**
- * The Adapter is the central manager in the IBIS Adapterframework, that has knowledge
- * and uses {@link IReceiver IReceivers} and a {@link PipeLine}.
  *
  * <b>responsibility</b><br/>
  * <ul>
@@ -82,6 +81,7 @@ import org.springframework.core.task.TaskExecutor;
  * @see    PipeLineResult
  * 
  */
+@IbisDescription("The Adapter is the central manager in the IBIS Adapterframework, that has knowledge and uses {@link IReceiver IReceivers} and a {@link PipeLine}.") 
 public class Adapter implements IAdapter, NamedBean {
 	private Logger log = LogUtil.getLogger(this);
 	protected Logger msgLog = LogUtil.getLogger("MSG");

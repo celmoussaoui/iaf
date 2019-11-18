@@ -19,11 +19,12 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Pipe that performs translations between special characters and their xml equivalents.
+ *
  * <p>When direction=cdata2text all cdata nodes are converted to text nodes without any other translations.</p>
  * <p><b>Exits:</b>
  * <table border="1">
@@ -33,6 +34,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * </p>
  * @author Peter Leeuwenburgh
  */
+@IbisDescription(" Pipe that performs translations between special characters and their xml equivalents.") 
 public class EscapePipe extends FixedForwardPipe {
 
 	private String substringStart;

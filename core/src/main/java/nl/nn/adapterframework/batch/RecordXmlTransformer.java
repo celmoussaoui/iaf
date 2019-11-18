@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
@@ -33,11 +34,11 @@ import nl.nn.adapterframework.util.TransformerPool;
 import nl.nn.adapterframework.util.XmlBuilder;
 
 /**
- * Encapsulates a record in XML, optionally translates it using XSLT or XPath.
  * 
  * 
  * @author  John Dekker / Gerrit van Brakel
  */
+@IbisDescription(" Encapsulates a record in XML, optionally translates it using XSLT or XPath.") 
 public class RecordXmlTransformer extends AbstractRecordHandler {
 	private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 

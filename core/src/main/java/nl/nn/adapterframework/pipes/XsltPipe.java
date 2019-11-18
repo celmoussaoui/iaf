@@ -26,6 +26,7 @@ import nl.nn.adapterframework.core.PipeRunResult;
 import nl.nn.adapterframework.core.PipeStartException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.parameters.ParameterList;
@@ -39,7 +40,6 @@ import nl.nn.adapterframework.stream.StreamingException;
 
 
 /**
- * Perform an XSLT transformation with a specified stylesheet.
  *
  * <tr><th>nested elements</th><th>description</th></tr>
  * <tr><td>{@link Parameter param}</td><td>any parameters defined on the pipe will be applied to the created transformer</td></tr>
@@ -47,7 +47,7 @@ import nl.nn.adapterframework.stream.StreamingException;
  * </p>
  * @author Johan Verrips
  */
-
+@IbisDescription(" Perform an XSLT transformation with a specified stylesheet.") 
 public class XsltPipe extends StreamingPipe implements IThreadCreator {
 
 	private String sessionKey=null;

@@ -20,11 +20,12 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Pipe that compares the integer values of two session variables.
+ *
  * Used to in combination with {@link IncreaseIntegerPipe} to contstruct loops.
  *
  * <p><b>Exits:</b>
@@ -37,6 +38,7 @@ import org.apache.commons.lang.StringUtils;
  * </p>
  * @author     Richard Punt / Gerrit van Brakel
  */
+@IbisDescription(" Pipe that compares the integer values of two session variables.") 
 public class CompareIntegerPipe extends AbstractPipe {
 
 	private final static String LESSTHANFORWARD = "lessthan";

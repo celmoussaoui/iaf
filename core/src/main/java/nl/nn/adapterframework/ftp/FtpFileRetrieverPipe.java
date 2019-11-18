@@ -20,11 +20,11 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.pipes.FixedForwardPipe;
 
 /**
- * Pipe for retreiving files via (s)ftp. The path of the created local file is returned.
  *
  * <p><b>Exits:</b>
  * <table border="1">
@@ -38,6 +38,7 @@ import nl.nn.adapterframework.pipes.FixedForwardPipe;
  * @author John Dekker
  * @since   4.4
  */
+@IbisDescription(" Pipe for retreiving files via (s)ftp.") 
 public class FtpFileRetrieverPipe extends FixedForwardPipe {
 
 	private FtpSession ftpSession;

@@ -38,6 +38,7 @@ import javax.naming.directory.ModificationItem;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.lang.StringUtils;
@@ -56,7 +57,7 @@ import nl.nn.adapterframework.util.ClassUtils;
 import nl.nn.adapterframework.util.XmlBuilder;
 
 /**
- * Sender to obtain information from and write to an LDAP Directory.
+ *
  * Returns the set of attributes in an XML format. Examples are shown below.
  * 
  * 
@@ -158,6 +159,7 @@ import nl.nn.adapterframework.util.XmlBuilder;
  * @author Gerrit van Brakel
  * @author Jaco de Groot
  */
+@IbisDescription(" Sender to obtain information from and write to an LDAP Directory.") 
 public class LdapSender extends JNDIBase implements ISenderWithParameters {
 
 	private String FILTER = "filterExpression";

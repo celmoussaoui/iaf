@@ -25,10 +25,10 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 import nl.nn.adapterframework.core.PipeStartException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 
 /**
- * Retrieves a message using an {@link IPostboxListener}. 
  * 
  * Note that most listeners allow you to specify a timeout. The timeout has the following
  * meaning:
@@ -52,6 +52,7 @@ import nl.nn.adapterframework.doc.IbisDoc;
   * 
  * @author  John Dekker
  */
+@IbisDescription(" Retrieves a message using an {@link IPostboxListener}.") 
 public class PostboxRetrieverPipe  extends FixedForwardPipe {
 
 	private IPostboxListener listener = null;

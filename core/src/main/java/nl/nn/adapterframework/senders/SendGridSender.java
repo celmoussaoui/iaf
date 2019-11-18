@@ -42,6 +42,7 @@ import com.sendgrid.SendGrid;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.http.HttpSender;
 import nl.nn.adapterframework.http.HttpSenderBase;
@@ -49,11 +50,11 @@ import nl.nn.adapterframework.util.DomBuilderException;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Sender that sends a mail via SendGrid v3 (cloud-based SMTP provider).
  * 
  * Sample XML file can be found in the path: iaf-core/src/test/resources/emailSamplesXML/emailSample.xml
  * @author alisihab
  */
+@IbisDescription(" Sender that sends a mail via SendGrid v3 (cloud-based SMTP provider).") 
 public class SendGridSender extends MailSenderBase {
 
 	private SendGrid sendGrid;

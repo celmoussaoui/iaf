@@ -33,6 +33,7 @@ import nl.nn.adapterframework.core.ListenerException;
 import nl.nn.adapterframework.core.PipeLineResult;
 import nl.nn.adapterframework.dispatcher.DispatcherManagerFactory;
 import nl.nn.adapterframework.dispatcher.RequestProcessor;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.http.HttpSecurityHandler;
 import nl.nn.adapterframework.util.LogUtil;
@@ -42,10 +43,10 @@ import org.apache.log4j.Logger;
 
 
 /** *
- * The JavaListener listens to java requests.
  *
  * @author  Gerrit van Brakel
  */
+@IbisDescription(" The JavaListener listens to java requests.") 
 public class JavaListener implements IPushingListener, RequestProcessor, HasPhysicalDestination {
 	protected Logger log = LogUtil.getLogger(this);
 

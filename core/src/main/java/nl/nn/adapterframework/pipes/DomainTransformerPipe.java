@@ -29,13 +29,13 @@ import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 import nl.nn.adapterframework.core.PipeStartException;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.jdbc.FixedQuerySender;
 import nl.nn.adapterframework.jdbc.JdbcException;
 import nl.nn.adapterframework.util.JdbcUtil;
 
 /**
- * Pipe that performs domain transforming on the basis of a database table.
  *
  * Every string which equals "%![DT{<code>label</code>,<code>valueIn</code>,<code>type</code>}]" will be replaced by <code>valueOut</code>. 
  * 
@@ -50,7 +50,7 @@ import nl.nn.adapterframework.util.JdbcUtil;
  * @author  Peter Leeuwenburgh
  * @since   4.9
  */
-
+@IbisDescription(" Pipe that performs domain transforming on the basis of a database table.") 
 public class DomainTransformerPipe extends FixedForwardPipe {
 
 	private final static String DT_START = "%![DT{";

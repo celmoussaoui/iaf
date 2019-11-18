@@ -17,14 +17,15 @@ package nl.nn.adapterframework.jdbc;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Database Listener that operates on a table having at least a key and a status field.
  *
  * @since   4.7
  */
+@IbisDescription(" Database Listener that operates on a table having at least a key and a status field.") 
 public class JdbcTableListener extends JdbcListener {
 	
 	private String tableName;

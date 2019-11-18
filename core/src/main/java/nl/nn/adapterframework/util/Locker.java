@@ -24,6 +24,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.jdbc.JdbcException;
 import nl.nn.adapterframework.jdbc.JdbcFacade;
@@ -32,7 +33,6 @@ import nl.nn.adapterframework.util.Misc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Locker of scheduler jobs and pipes.
  *
  * Tries to set a lock (by inserting a record in the database table IbisLock) and only if this is done
  * successfully the job is executed.
@@ -60,6 +60,7 @@ import org.apache.commons.lang.StringUtils;
  * 
  * @author  Peter Leeuwenburgh
  */
+@IbisDescription(" Locker of scheduler jobs and pipes.") 
 public class Locker extends JdbcFacade {
 	private static final String LOCK_IGNORED="%null%";
 

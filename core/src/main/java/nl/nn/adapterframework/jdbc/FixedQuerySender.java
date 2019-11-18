@@ -21,11 +21,11 @@ import java.sql.SQLException;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * QuerySender that assumes a fixed query, possibly with attributes.
  * 
  * <table border="1">
  * <p><b>Parameters:</b>
@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
  * @author  Gerrit van Brakel
  * @since 	4.1
  */
+@IbisDescription(" QuerySender that assumes a fixed query, possibly with attributes.") 
 public class FixedQuerySender extends JdbcQuerySenderBase {
 
 	private String query=null;

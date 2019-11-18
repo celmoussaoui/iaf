@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
@@ -43,7 +44,7 @@ import nl.nn.adapterframework.util.FileUtils;
 import nl.nn.adapterframework.util.Misc;
 
 /**
- * Pipe for transforming a stream with records. Records in the stream must be separated
+ * Records in the stream must be separated
  * with new line characters.
  * <table border="1">
  * <tr><th>nested elements</th><th>description</th></tr>
@@ -65,6 +66,7 @@ import nl.nn.adapterframework.util.Misc;
  * @author John Dekker / Gerrit van Brakel
  * @since   4.7
  */
+@IbisDescription(" Pipe for transforming a stream with records.") 
 public class StreamTransformerPipe extends FixedForwardPipe {
 
 	public static final String originalBlockKey="originalBlock";

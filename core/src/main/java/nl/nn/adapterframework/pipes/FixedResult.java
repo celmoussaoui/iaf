@@ -32,6 +32,7 @@ import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.parameters.ParameterValue;
@@ -43,7 +44,6 @@ import nl.nn.adapterframework.util.StringResolver;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Provides an example of a pipe. It may return the contents of a file
  * (in the classpath) when <code>fileName</code> or <code>fileNameSessionKey</code> is specified, otherwise the
  * input of <code>returnString</code> is returned.
  *
@@ -69,6 +69,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * </p>
  * @author Johan Verrips
  */
+@IbisDescription(" Provides an example of a pipe.") 
 public class FixedResult extends FixedForwardPipe {
 	
 	private final static String FILE_NOT_FOUND_FORWARD = "filenotfound";

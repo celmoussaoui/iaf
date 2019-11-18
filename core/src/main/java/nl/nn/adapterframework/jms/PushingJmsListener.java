@@ -22,6 +22,7 @@ import javax.jms.Destination;
 import javax.jms.Message;
 import javax.jms.Session;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
@@ -41,7 +42,6 @@ import nl.nn.adapterframework.core.PipeLineResult;
 import nl.nn.adapterframework.receivers.ReceiverBase;
 
 /**
- * JMSListener re-implemented as a pushing listener rather than a pulling listener.
  * The JMS messages have to come in from an external source: an MDB or a Spring
  * message container.
  *
@@ -84,6 +84,7 @@ import nl.nn.adapterframework.receivers.ReceiverBase;
  * @author  Tim van der Leeuw
  * @since   4.8
  */
+@IbisDescription(" JMSListener re-implemented as a pushing listener rather than a pulling listener.") 
 public class PushingJmsListener extends JmsListenerBase implements IPortConnectedListener<Message>, IThreadCountControllable, IKnowsDeliveryCount {
 
 	private String listenerPort;

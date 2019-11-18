@@ -22,6 +22,7 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.ClassUtils;
 
@@ -29,8 +30,6 @@ import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.xmlrules.DigesterLoader;
 
 /**
- * Converts an XML string (input) to a set of java objects using the
- * <a href="http://jakarta.apache.org/commons/digester">digester</a>.
  * <p>The result is an anonymous object. Your digester-rules file should specify
  * how the xml file is parsed, and what the root object will be.</p>
  * <p><b>Exits:</b>
@@ -41,7 +40,7 @@ import org.apache.commons.digester.xmlrules.DigesterLoader;
  * @author Richard Punt
  * @since 4.0.1 : adjustments to support multi-threading
  */
-
+@IbisDescription("Converts an XML string (input) to a set of java objects using the <a href=\"http://jakarta.apache.org/commons/digester\">digester</a>.")
 public class DigesterPipe extends FixedForwardPipe {
 
 	private String digesterRulesFile;

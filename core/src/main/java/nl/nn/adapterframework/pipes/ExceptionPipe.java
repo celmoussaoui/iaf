@@ -19,11 +19,11 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Pipe that throws an exception, based on the input message.
  * 
  * <p><b>Exits:</b>
  * <table border="1">
@@ -34,7 +34,7 @@ import org.apache.commons.lang.StringUtils;
  * 
  * @author  Gerrit van Brakel
  */
-
+@IbisDescription(" Pipe that throws an exception, based on the input message.") 
 public class ExceptionPipe extends FixedForwardPipe {
 
 	private boolean throwException = true;

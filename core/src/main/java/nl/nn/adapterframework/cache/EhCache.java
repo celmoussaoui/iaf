@@ -22,11 +22,11 @@ import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 import nl.nn.adapterframework.configuration.ConfigurationException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.AppConstants;
 
 /**
- * General Cache provider.
  * 
  * N.B. the default values shown can be overridden using properties in appConstants. The property names are found by prefixing the attribute name with <code>cache.default.</code>.
  * </p>
@@ -35,6 +35,7 @@ import nl.nn.adapterframework.util.AppConstants;
  * @author  Gerrit van Brakel
  * @since   4.11
  */
+@IbisDescription(" General Cache provider.") 
 public class EhCache<V> extends CacheAdapterBase<V> {
 	
 	private final String KEY_PREFIX="cache.default."; 

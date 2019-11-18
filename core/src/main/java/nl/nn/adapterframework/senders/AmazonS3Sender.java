@@ -27,6 +27,7 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.filesystem.AmazonS3FileSystem;
 import nl.nn.adapterframework.filesystem.FileSystemSender;
@@ -35,7 +36,6 @@ import nl.nn.adapterframework.parameters.ParameterValueList;
 import nl.nn.adapterframework.stream.MessageOutputStream;
 
 /**
- * Sender to work with Amazon S3. 
  * 
  * <p><b>S3 File System specific Actions:</b></p>
  * <p>The <code>createBucket</code> action requires bucket name as input. Bucket region must be specified.</p>
@@ -45,6 +45,7 @@ import nl.nn.adapterframework.stream.MessageOutputStream;
  * 
  * <br/>
  */
+@IbisDescription(" Sender to work with Amazon S3.") 
 public class AmazonS3Sender extends FileSystemSender<S3Object, AmazonS3FileSystem> {
 
 	private List<String> specificActions = Arrays.asList("createBucket", "deleteBucket", "copy", "restore");

@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.http.mime.MultipartEntityBuilder;
 import nl.nn.adapterframework.parameters.Parameter;
@@ -72,7 +73,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
- * Sender for the HTTP protocol using GET, POST, PUT or DELETE.
  * 
  * <p><b>Parameters:</b></p>
  * <p>Any parameters present are appended to the request as request-parameters except the headersParams list which are added as http headers</p>
@@ -147,7 +147,7 @@ import org.w3c.dom.Node;
  * @since 7.0
  * @version 2.0
  */
-
+@IbisDescription(" Sender for the HTTP protocol using GET, POST, PUT or DELETE.") 
 public class HttpSender extends HttpSenderBase {
 
 	private String streamResultToFileNameSessionKey = null;

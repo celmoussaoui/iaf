@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -46,7 +47,6 @@ import nl.nn.adapterframework.soap.SoapWrapper;
 import nl.nn.adapterframework.util.Misc;
 
 /**
- * Stream an input stream to an output stream.
  *
  * <p><b>Parameters:</b></p>
  * <table border="1">
@@ -70,6 +70,7 @@ import nl.nn.adapterframework.util.Misc;
  * </p>
  * @author Jaco de Groot
  */
+@IbisDescription(" Stream an input stream to an output stream.") 
 public class StreamPipe extends FixedForwardPipe {
 	public static final String ANTIVIRUS_FAILED_FORWARD = "antiVirusFailed";
 

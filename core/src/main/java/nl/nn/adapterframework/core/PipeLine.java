@@ -30,6 +30,7 @@ import nl.nn.adapterframework.cache.ICacheAdapter;
 import nl.nn.adapterframework.cache.ICacheEnabled;
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.configuration.ConfigurationWarnings;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.extensions.esb.EsbSoapWrapperPipe;
 import nl.nn.adapterframework.jms.JmsException;
@@ -49,7 +50,6 @@ import nl.nn.adapterframework.util.Misc;
 import nl.nn.adapterframework.util.SpringTxManagerProxy;
 
 /**
- * Processor and keeper of a line of {@link IPipe Pipes}.
  * <br/>
  * Pipelines also generate statics information per Pipe and keep forwards, that are registered
  * at individual pipes during the configure fase.
@@ -85,6 +85,7 @@ import nl.nn.adapterframework.util.SpringTxManagerProxy;
  * 
  * @author  Johan Verrips
  */
+@IbisDescription(" Processor and keeper of a line of {@link IPipe Pipes}.") 
 public class PipeLine implements ICacheEnabled, HasStatistics {
     private Logger log = LogUtil.getLogger(this);
 

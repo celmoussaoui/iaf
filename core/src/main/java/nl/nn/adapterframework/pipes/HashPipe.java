@@ -24,6 +24,7 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.codec.binary.Base64;
 
@@ -36,11 +37,11 @@ import nl.nn.adapterframework.parameters.ParameterValueList;
 import nl.nn.adapterframework.util.CredentialFactory;
 
 /**
- * Pipe that hashes the imput
  * 
  * 
  * @author	Niels Meijer
  */
+@IbisDescription(" Pipe that hashes the input.") 
 public class HashPipe extends FixedForwardPipe {
 
 	private String algorithm = "HmacSHA256";

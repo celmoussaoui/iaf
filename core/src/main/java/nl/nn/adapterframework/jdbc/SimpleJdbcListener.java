@@ -28,16 +28,16 @@ import nl.nn.adapterframework.core.IPullingListener;
 import nl.nn.adapterframework.core.ListenerException;
 import nl.nn.adapterframework.core.PipeLineResult;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Database Listener that operates on a table.
  *
  * 
  * @author  Peter Leeuwenburgh
  */
-
+@IbisDescription(" Database Listener that operates on a table.") 
 public class SimpleJdbcListener extends JdbcFacade implements IPullingListener {
 	protected final static String KEYWORD_SELECT_COUNT = "select count(";
 

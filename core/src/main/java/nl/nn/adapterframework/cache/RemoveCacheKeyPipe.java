@@ -22,17 +22,18 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.pipes.FixedForwardPipe;
 
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Remove specified cache key from cache with specified name.
  *
  *
  * @author Jaco de Groot
  */
+@IbisDescription(" Remove specified cache key from cache with specified name.") 
 public class RemoveCacheKeyPipe extends FixedForwardPipe {
 	private IbisCacheManager ibisCacheManager;
 	private String cacheName;

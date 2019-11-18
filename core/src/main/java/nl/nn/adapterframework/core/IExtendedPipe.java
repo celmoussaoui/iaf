@@ -16,11 +16,11 @@
 package nl.nn.adapterframework.core;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.Locker;
 
 /**
- * extra attributes to do logging and use sessionvariables.
  * 
  * 
  * <p>

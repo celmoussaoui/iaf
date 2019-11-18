@@ -19,17 +19,18 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.Misc;
 
 /**
- * Pipe that generates an UUID (Universally Unique Identifier).
  *
  *
  * Only type <code>alphanumeric</code> guarantees a 100% unique identifier, type <code>numeric</code> has a 0.01% chance of exactly the same id in case of multiple calls on the same host within a few milliseconds.  
  * 
  * @author Peter Leeuwenburgh
  */
+@IbisDescription(" Pipe that generates an UUID (Universally Unique Identifier).") 
 public class UUIDGeneratorPipe extends FixedForwardPipe {
 
 	private String type = "alphanumeric";

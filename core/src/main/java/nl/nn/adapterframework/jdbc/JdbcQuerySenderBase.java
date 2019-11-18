@@ -39,6 +39,7 @@ import java.util.StringTokenizer;
 import javax.jms.JMSException;
 import javax.servlet.http.HttpServletResponse;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.lang.StringUtils;
@@ -59,7 +60,7 @@ import nl.nn.adapterframework.util.XmlBuilder;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * This executes the query that is obtained from the (here still abstract) method getStatement.
+ *
  * Descendent classes can override getStatement to provide meaningful statements.
  * If used with parameters, the values of the parameters will be applied to the statement. 
  * Each occurrence of a questionmark ('?') will be replaced by a parameter value. Parameters are applied

@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
@@ -36,10 +37,10 @@ import nl.nn.adapterframework.jdbc.JdbcException;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 
 /**
- * QuerySender that writes each row in a ResultSet to a file.
  * 
  * @author  Peter Leeuwenburgh
  */
+@IbisDescription(" QuerySender that writes each row in a ResultSet to a file.") 
 public class ResultSet2FileSender extends FixedQuerySender {
 	private String fileNameSessionKey;
 	private String statusFieldType;

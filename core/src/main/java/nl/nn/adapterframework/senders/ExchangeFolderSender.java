@@ -17,15 +17,16 @@ package nl.nn.adapterframework.senders;
 
 import microsoft.exchange.webservices.data.core.service.item.Item;
 import nl.nn.adapterframework.core.HasPhysicalDestination;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.filesystem.ExchangeFileSystem;
 import nl.nn.adapterframework.filesystem.FileSystemSender;
 /**
- * Implementation of a {@link FileSystemSender} that enables to manipulate messages in a Exchange folder.
  *
  * 
  * @author Gerrit van Brakel
  */
+@IbisDescription(" Implementation of a {@link FileSystemSender} that enables to manipulate messages in a Exchange folder.") 
 public class ExchangeFolderSender extends FileSystemSender<Item,ExchangeFileSystem> implements HasPhysicalDestination {
 
 	public ExchangeFolderSender() {

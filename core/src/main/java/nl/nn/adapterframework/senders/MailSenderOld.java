@@ -45,6 +45,7 @@ import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.SenderWithParametersBase;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.parameters.ParameterValue;
@@ -61,7 +62,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
- * {@link nl.nn.adapterframework.core.ISender sender} that sends a mail specified by an XML message.
  * <p>
  * Sample email.xml:
  * <code><pre>
@@ -132,7 +132,7 @@ import org.w3c.dom.Node;
  * 
  * @author Johan Verrips/Gerrit van Brakel
  */
-
+@IbisDescription(" {@link nl.") 
 public class MailSenderOld extends SenderWithParametersBase {
 
 	private String smtpHost;

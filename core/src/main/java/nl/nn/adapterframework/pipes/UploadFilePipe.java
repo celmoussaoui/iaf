@@ -23,18 +23,18 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.FileUtils;
 
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Uploads a zip file (inputstream in a sessionKey) and unzips it to a directory.
  *
  * 
  * @author Peter Leeuwenburgh
  */
-
+@IbisDescription(" Uploads a zip file (inputstream in a sessionKey) and unzips it to a directory.") 
 public class UploadFilePipe extends FixedForwardPipe {
 
 	private String directory;

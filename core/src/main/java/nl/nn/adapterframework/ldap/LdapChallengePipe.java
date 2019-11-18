@@ -23,6 +23,7 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -31,7 +32,6 @@ import nl.nn.adapterframework.util.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Pipe to check if a username and password are valid in LDAP.
  * 
  * <table border="1">
  * <p><b>Parameters:</b>
@@ -52,6 +52,7 @@ import org.apache.commons.lang.StringUtils;
  * @deprecated
  * @author  Milan Tomc
  */
+@IbisDescription(" Pipe to check if a username and password are valid in LDAP.") 
 public class LdapChallengePipe extends AbstractPipe {
 
 	private String ldapProviderURL=null;

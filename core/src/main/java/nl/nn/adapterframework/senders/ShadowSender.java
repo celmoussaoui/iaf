@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.springframework.core.task.TaskExecutor;
 
@@ -37,7 +38,6 @@ import nl.nn.adapterframework.util.XmlBuilder;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Collection of Senders, that are executed all at the same time. Once the results are processed, all results will be sent to the resultSender, while the original sender will return it's result to the pipeline.
  * 
  * <table border="1">
  * <tr><th>nested elements</th><th>description</th></tr>
@@ -49,6 +49,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * @author  Niels Meijer
  * @since   7.0
  */
+@IbisDescription(" Collection of Senders, that are executed all at the same time.") 
 public class ShadowSender extends ParallelSenders {
 
 	private String originalSender = null;

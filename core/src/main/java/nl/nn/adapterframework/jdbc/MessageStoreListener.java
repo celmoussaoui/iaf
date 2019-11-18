@@ -22,6 +22,7 @@ import java.util.StringTokenizer;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.ListenerException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.receivers.MessageWrapper;
 import nl.nn.adapterframework.receivers.ReceiverBase;
@@ -29,12 +30,11 @@ import nl.nn.adapterframework.receivers.ReceiverBase;
 import org.apache.commons.lang.text.StrTokenizer;
 
 /**
- * Read messages from the ibisstore previously stored by a
- * {@link MessageStoreSender}.
  * 
  * 
  * @author Jaco de Groot
  */
+@IbisDescription("Read messages from the ibisstore previously stored by a {@link MessageStoreSender}.") 
 public class MessageStoreListener extends JdbcQueryListener {
 	private String slotId;
 	private String sessionKeys = null;

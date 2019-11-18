@@ -20,11 +20,11 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.statistics.StatisticsKeeper;
 
 /**
- * Selects an exitState, based on the number of received messages by this pipe.
  * 
  * The exitState is the difference (subtraction) between the <code>divisor</code> and
  * the remainder of [number of received messages] modulus <code>divisor</code>.
@@ -33,7 +33,7 @@ import nl.nn.adapterframework.statistics.StatisticsKeeper;
  *
  * @author  Peter Leeuwenburgh
  */
-
+@IbisDescription(" Selects an exitState, based on the number of received messages by this pipe.") 
 public class CounterSwitchPipe extends FixedForwardPipe {
 	private int divisor = 2;
 

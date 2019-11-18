@@ -40,6 +40,7 @@ import nl.nn.adapterframework.core.IReceiver;
 import nl.nn.adapterframework.core.ITransactionalStorage;
 import nl.nn.adapterframework.core.IbisTransaction;
 import nl.nn.adapterframework.core.PipeLine;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.http.RestListener;
 import nl.nn.adapterframework.http.RestServiceDispatcher;
@@ -74,7 +75,6 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 
 /**
- * Definition / configuration of scheduler jobs.
  * 
  * Specified in the Configuration.xml by a &lt;job&gt; inside a &lt;scheduler&gt;. The scheduler element must
  * be a direct child of configuration, not of adapter.
@@ -344,6 +344,7 @@ import org.springframework.transaction.TransactionStatus;
  * 
  * @author  Johan  Verrips
  */
+@IbisDescription(" Definition / configuration of scheduler jobs.") 
 public class JobDef {
 	protected Logger log=LogUtil.getLogger(this);
 	protected Logger heartbeatLog = LogUtil.getLogger("HEARTBEAT");

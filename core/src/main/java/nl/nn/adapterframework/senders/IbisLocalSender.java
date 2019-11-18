@@ -17,6 +17,7 @@ package nl.nn.adapterframework.senders;
 
 import java.util.HashMap;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -36,7 +37,6 @@ import nl.nn.adapterframework.receivers.ServiceDispatcher;
 import nl.nn.adapterframework.util.Misc;
 
 /**
- * Posts a message to another IBIS-adapter in the same IBIS instance.
  * 
  * An IbisLocalSender makes a call to a Receiver with either a {@link nl.nn.adapterframework.http.WebServiceListener WebServiceListener}
  * or a {@link JavaListener JavaListener}.
@@ -78,6 +78,7 @@ import nl.nn.adapterframework.util.Misc;
  * @author Gerrit van Brakel
  * @since  4.2
  */
+@IbisDescription(" Posts a message to another IBIS-adapter in the same IBIS instance.") 
 public class IbisLocalSender extends SenderWithParametersBase implements HasPhysicalDestination, ConfigurationAware {
 	
 	private Configuration configuration;

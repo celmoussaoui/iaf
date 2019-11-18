@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.text.StrBuilder;
@@ -34,8 +35,6 @@ import nl.nn.adapterframework.parameters.ParameterList;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 
 /**
- * Send messages to the ibisstore to have them processed exactly-once by another
- * adapter which will read the messages using a {@link MessageStoreListener}.
  * This other adapter will process the messages asynchronously and (optionally)
  * under transaction control. Duplicate messages are ignored based on the
  * messageId (except when onlyStoreWhenMessageIdUnique is set to false), hence
@@ -58,6 +57,7 @@ import nl.nn.adapterframework.parameters.ParameterResolutionContext;
  * 
  * @author Jaco de Groot
  */
+@IbisDescription("Send messages to the ibisstore to have them processed exactly-once by another adapter which will read the messages using a {@link MessageStoreListener}.") 
 public class MessageStoreSender extends JdbcTransactionalStorage implements ISenderWithParameters {
 	private ParameterList paramList = null;
 	private String sessionKeys = null;

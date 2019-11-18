@@ -18,6 +18,7 @@ package nl.nn.adapterframework.senders;
 import nl.nn.adapterframework.core.ISender;
 import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.parameters.ParameterValue;
@@ -36,9 +37,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 
 /**
- * Sender used to run javascript code using J2V8 or Rhino
- * 
- * This sender can execute a function of a given javascript file, the result of the function will be the output of the sender.
  * The parameters of the javascript function to run are given as parameters by the adapter configuration
  * The sender doesn't accept nor uses the given input, instead for each argument for the {@link #jsFunctionName} method, 
  * you will need to create a parameter on the sender.
@@ -48,7 +46,7 @@ import org.apache.commons.lang.SystemUtils;
  * @author Jarno Huibers
  * @since 7.4
  */
-
+@IbisDescription("Sender used to run javascript code using J2V8 or Rhino This sender can execute a function of a given javascript file, the result of the function will be the output of the sender.") 
 public class JavascriptSender extends SenderSeries {
 
 	private String fileInput;

@@ -30,6 +30,7 @@ import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 import nl.nn.adapterframework.core.PipeStartException;
 import nl.nn.adapterframework.core.Resource;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterList;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -39,8 +40,6 @@ import nl.nn.adapterframework.util.XmlUtils;
 
 
 /**
- * Selects an exitState, based on either the content of the input message, by means
- * of a XSLT-stylesheet, the content of a session variable or, by default, by returning the name of the root-element.
  * 
  * <p><b>Exits:</b>
  * <table border="1">
@@ -51,6 +50,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * </p>
  * @author Johan Verrips
  */
+@IbisDescription("Selects an exitState, based on either the content of the input message, by means of a XSLT-stylesheet, the content of a session variable or, by default, by returning the name of the root-element.") 
 public class XmlSwitch extends AbstractPipe {
 
 	public static final String XML_SWITCH_FORWARD_FOUND_MONITOR_EVENT = "Switch: Forward Found";

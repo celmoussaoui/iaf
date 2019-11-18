@@ -19,12 +19,13 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.XmlUtils;
 import nl.nn.adapterframework.validation.AbstractXmlValidator;
 
 /**
- *<code>Pipe</code> that checks the well-formedness of the input message.
+ *
  * If <code>root</code> is given then this is also checked.
  * 
  * <table border="1">
@@ -38,7 +39,7 @@ import nl.nn.adapterframework.validation.AbstractXmlValidator;
  * @author  Peter Leeuwenburgh
  * @since	4.4.5
  */
-
+@IbisDescription("<code>Pipe</code> that checks the well-formedness of the input message.") 
 public class XmlWellFormedChecker extends FixedForwardPipe {
 	private String root = null;
 

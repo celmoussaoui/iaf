@@ -49,6 +49,7 @@ import nl.nn.adapterframework.core.PipeRunResult;
 import nl.nn.adapterframework.core.PipeStartException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.errormessageformatters.ErrorMessageFormatter;
 import nl.nn.adapterframework.extensions.esb.EsbSoapWrapperPipe;
@@ -79,8 +80,6 @@ import nl.nn.adapterframework.util.TransformerPool;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Sends a message using a {@link ISender sender} and optionally receives a reply from the same sender, or
- * from a {@link ICorrelatedPullingListener listener}.
  *
  * <table border="1">
  * <tr><th>nested elements</th><th>description</th></tr>
@@ -111,7 +110,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * </p>
  * @author  Gerrit van Brakel
  */
-
+@IbisDescription("Sends a message using a {@link ISender sender} and optionally receives a reply from the same sender, or from a {@link ICorrelatedPullingListener listener}.") 
 public class MessageSendingPipe extends StreamingPipe implements HasSender, HasStatistics, EventThrowing {
 	protected Logger msgLog = LogUtil.getLogger("MSG");
 

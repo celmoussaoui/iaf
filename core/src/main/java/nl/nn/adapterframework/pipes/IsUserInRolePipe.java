@@ -21,11 +21,12 @@ import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Pipe that checks if the calling user has a specified role. 
+ * 
  * Uses the PipeLineSessions methods.
  * <p>
  * If the role is not specified by the role attribute, the input of
@@ -45,6 +46,7 @@ import org.apache.commons.lang.StringUtils;
  * @author  Gerrit van Brakel
  * @since   4.4.3
  */
+@IbisDescription(" Pipe that checks if the calling user has a specified role.") 
 public class IsUserInRolePipe extends FixedForwardPipe {
 
 	private String role=null;

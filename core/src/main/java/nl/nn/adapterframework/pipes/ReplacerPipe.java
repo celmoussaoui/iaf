@@ -19,6 +19,7 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.Variant;
 import nl.nn.adapterframework.util.XmlUtils;
@@ -26,11 +27,11 @@ import nl.nn.adapterframework.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Replaces all occurrences of one string with another.
  *
  * @author Gerrit van Brakel
  * @since 4.2
  */
+@IbisDescription(" Replaces all occurrences of one string with another.") 
 public class ReplacerPipe extends FixedForwardPipe {
 
 	private String find;

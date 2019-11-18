@@ -26,6 +26,7 @@ import nl.nn.adapterframework.core.IDataIterator;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeStartException;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -36,7 +37,6 @@ import org.apache.commons.lang.StringUtils;
 
 
 /**
- * Base class for JDBC iterating pipes.
  * 
  * @author  Gerrit van Brakel
  * @since   4.7

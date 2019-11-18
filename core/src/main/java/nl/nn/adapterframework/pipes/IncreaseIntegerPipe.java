@@ -20,15 +20,17 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Pipe that increases the integer values of a session variable.
+ *
  * Used to in combination with {@link CompareIntegerPipe} to contstruct loops.
  *
  * @author Richard Punt / Gerrit van Brakel
  */
+@IbisDescription(" Pipe that increases the integer values of a session variable.") 
 public class IncreaseIntegerPipe extends FixedForwardPipe {
 
 	private String sessionKey=null;

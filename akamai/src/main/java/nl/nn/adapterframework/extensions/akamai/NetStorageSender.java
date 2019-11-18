@@ -29,6 +29,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import nl.nn.adapterframework.doc.IbisDescription;
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -58,7 +59,6 @@ import nl.nn.adapterframework.util.XmlBuilder;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Sender for Akamai NetStorage (HTTP based).
  *
  * <p>See {@link nl.nn.adapterframework.http.HttpSenderBase} for more arguments and parameters!</p>
  *
@@ -76,6 +76,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * @author	Niels Meijer
  * @since	7.0-B4
  */
+@IbisDescription(" Sender for Akamai NetStorage (HTTP based).")
 public class NetStorageSender extends HttpSenderBase implements HasPhysicalDestination {
 	private Logger log = LogUtil.getLogger(NetStorageSender.class);
 
@@ -248,9 +249,9 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 		} else {
 			if (statusCode==HttpServletResponse.SC_OK) {
 				ok = true;
-			} else if (isFollowRedirects() && 
-					statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY || 
-					statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY || 
+			} else if (isFollowRedirects() &&
+					statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY ||
+					statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY ||
 					statusCode == HttpServletResponse.SC_TEMPORARY_REDIRECT) {
 				ok = true;
 			}

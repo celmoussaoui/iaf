@@ -44,6 +44,7 @@ import nl.nn.adapterframework.core.IMessageBrowsingIteratorItem;
 import nl.nn.adapterframework.core.ITransactionalStorage;
 import nl.nn.adapterframework.core.ListenerException;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.jdbc.dbms.IDbmsSupport;
 import nl.nn.adapterframework.util.AppConstants;
@@ -58,7 +59,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
- * JDBC implementation of {@link ITransactionalStorage}.
  * 
  * 
  * For an Oracle database the following objects are used by default:
@@ -145,6 +145,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author Jaco de Groot
  * @since 4.1
  */
+@IbisDescription(" JDBC implementation of {@link ITransactionalStorage}.") 
 public class JdbcTransactionalStorage extends JdbcFacade implements ITransactionalStorage {
 
 	public static final String TYPE_ERRORSTORAGE="E";

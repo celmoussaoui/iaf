@@ -19,11 +19,11 @@ import java.io.Reader;
 import java.sql.ResultSet;
 
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.JdbcUtil;
 
 /**
- * Pipe that iterates over the lines in a blob.
  *
  * <tr><td>{@link #setResultOnTimeOut(String) resultOnTimeOut}</td><td>result returned when no return-message was received within the timeout limit (e.g. "receiver timed out").</td><td>&nbsp;</td></tr>
  * <tr><td>{@link #setLinkMethod(String) linkMethod}</td><td>Indicates wether the server uses the correlationID or the messageID in the correlationID field of the reply</td><td>CORRELATIONID</td></tr>
@@ -70,6 +70,7 @@ import nl.nn.adapterframework.util.JdbcUtil;
  * @author  Gerrit van Brakel
  * @since   4.7
  */
+@IbisDescription(" Pipe that iterates over the lines in a blob.") 
 public class BlobLineIteratingPipe extends LobLineIteratingPipeBase {
 
 	protected Reader getReader(ResultSet rs) throws SenderException {

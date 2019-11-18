@@ -18,14 +18,16 @@ package nl.nn.adapterframework.pipes;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 
 /**
- * Pipe that sleeps for a specified time, which defaults to 5000 msecs.
+ *
  * Usefull for testing purposes.
  * 
  * @author L180564 - Johan Verrips
  */
+@IbisDescription(" Pipe that sleeps for a specified time, which defaults to 5000 msecs.") 
 public class DelayPipe extends FixedForwardPipe {
 
 	private long delayTime=5000;

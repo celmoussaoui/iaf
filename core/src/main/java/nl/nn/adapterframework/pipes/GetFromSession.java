@@ -18,6 +18,7 @@ package nl.nn.adapterframework.pipes;
 import java.util.Iterator;
 import java.util.Map;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,14 +29,12 @@ import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.util.XmlBuilder;
 
 /**
- * Gets the contents of the {@link IPipeLineSession pipeLineSession} by a key specified by
- * <code>{@link #setSessionKey(String) sessionKey}</code>.
  *
  * @author Johan Verrips
  *
  * @see IPipeLineSession
  */
-
+@IbisDescription("Gets the contents of the {@link IPipeLineSession pipeLineSession} by a key specified by <code>{@link #setSessionKey(String) sessionKey}</code>.") 
 public class GetFromSession  extends FixedForwardPipe {
 
 	private String sessionKey;

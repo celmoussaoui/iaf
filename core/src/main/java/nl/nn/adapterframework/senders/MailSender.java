@@ -40,12 +40,12 @@ import org.w3c.dom.Node;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.Misc;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * {@link nl.nn.adapterframework.core.ISender sender} that sends a mail specified by an XML message.
  *
  * <p>
  * Notice: the XML message must be valid XML. Therefore, especially the message element
@@ -109,7 +109,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * 
  * @author Johan Verrips/Gerrit van Brakel
  */
-
+@IbisDescription(" {@link nl.") 
 public class MailSender extends MailSenderBase {
 
 	private String smtpHost;

@@ -28,6 +28,7 @@ import nl.nn.adapterframework.core.PipeLine;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
 import nl.nn.adapterframework.core.PipeStartException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.pipes.FixedForwardPipe;
 import nl.nn.adapterframework.util.AppConstants;
@@ -71,7 +72,6 @@ public abstract class StreamingPipe extends FixedForwardPipe implements IOutputS
 	}
 
 	/**
-	 * Descendants of this class must implement this method, and write to the outputStream when it is not null. 
 	 */
 	public abstract PipeRunResult doPipe(Object input, IPipeLineSession session, MessageOutputStream outputStream) throws PipeRunException;
 	

@@ -21,11 +21,12 @@ import java.sql.SQLException;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.configuration.ConfigurationWarnings;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.ClassUtils;
 
 /**
- * QuerySender that interprets the input message as a query, possibly with attributes.
+ *
  * Messages are expected to contain sql-text.
  *
  * <table border="1">
@@ -38,6 +39,7 @@ import nl.nn.adapterframework.util.ClassUtils;
  * @author  Gerrit van Brakel
  * @since 	4.1
  */
+@IbisDescription(" QuerySender that interprets the input message as a query, possibly with attributes.") 
 public class DirectQuerySender extends JdbcQuerySenderBase {
 
 	private boolean lockRows=false;

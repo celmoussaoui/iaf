@@ -39,6 +39,7 @@ import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.SenderWithParametersBase;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription;
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.extensions.cmis.server.CmisEvent;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -79,7 +80,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
- * Sender to obtain information from and write to a CMIS application.
  *
  *
  * <p>
@@ -209,6 +209,7 @@ import org.w3c.dom.Node;
  * @author	Peter Leeuwenburgh
  * @author	Niels Meijer
  */
+@IbisDescription(" Sender to obtain information from and write to a CMIS application.")
 public class CmisSender extends SenderWithParametersBase {
 
 	private String action;
@@ -878,7 +879,7 @@ public class CmisSender extends SenderWithParametersBase {
 //				context.setIncludeRelationships(includeRelationships);
 //				context.setRenditionFilterString(renditionFilter);
 
-				ObjectList result = session.getBinding().getDiscoveryService().query(repositoryQueryId, statement, 
+				ObjectList result = session.getBinding().getDiscoveryService().query(repositoryQueryId, statement,
 						searchAllVersions, includeAllowableActions, includeRelationships, renditionFilter, maxItems, skipCount, null);
 				resultXml.addSubElement(CmisUtils.objectList2xml(result));
 				break;
@@ -895,8 +896,8 @@ public class CmisSender extends SenderWithParametersBase {
 				BigInteger getChildren_maxItems = BigInteger.valueOf(XmlUtils.getChildTagAsLong(requestElement, "maxItems"));
 				BigInteger getChildren_skipCount = BigInteger.valueOf(XmlUtils.getChildTagAsLong(requestElement, "skipCount"));
 
-				ObjectInFolderList oifs = session.getBinding().getNavigationService().getChildren(rid, fid, getChildren_repositoryFilter, 
-						getChildren_repositoryOrderBy, getChildren_includeAllowableActions, getChildren_includeRelationships, 
+				ObjectInFolderList oifs = session.getBinding().getNavigationService().getChildren(rid, fid, getChildren_repositoryFilter,
+						getChildren_repositoryOrderBy, getChildren_includeAllowableActions, getChildren_includeRelationships,
 						getChildren_renditionFilter, getChildren_includePathSegment, getChildren_maxItems, getChildren_skipCount, null);
 
 				resultXml.addSubElement(CmisUtils.objectInFolderList2xml(oifs));
@@ -918,7 +919,7 @@ public class CmisSender extends SenderWithParametersBase {
 	}
 
 	private String sendMessageForActionUpdate(String correlationID,
-			String message, ParameterResolutionContext prc)
+											  String message, ParameterResolutionContext prc)
 			throws SenderException, TimeOutException {
 		String objectId = null;
 		Map<String, Object> props = new HashMap<String, Object>();

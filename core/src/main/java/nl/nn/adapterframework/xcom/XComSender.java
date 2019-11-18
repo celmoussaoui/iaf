@@ -17,6 +17,7 @@ package nl.nn.adapterframework.xcom;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.*;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.util.CredentialFactory;
@@ -34,11 +35,11 @@ import java.util.StringTokenizer;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * XCom client voor het versturen van files via XCom.
 
  *
  * @author John Dekker
  */
+@IbisDescription(" XCom client voor het versturen van files via XCom.") 
 public class XComSender extends SenderWithParametersBase {
 
 	private File workingDir;

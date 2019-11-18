@@ -24,6 +24,7 @@ import nl.nn.adapterframework.configuration.ConfigurationWarnings;
 import nl.nn.adapterframework.core.ISender;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.util.ClassUtils;
@@ -35,7 +36,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * Collection of Senders, that are executed all at the same time.
  * 
  * <table border="1">
  * <tr><th>nested elements</th><th>description</th></tr>
@@ -46,6 +46,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author  Gerrit van Brakel
  * @since   4.9
  */
+@IbisDescription(" Collection of Senders, that are executed all at the same time.") 
 public class ParallelSenders extends SenderSeries {
 
 	private int maxConcurrentThreads = 0;

@@ -19,6 +19,7 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.util.TransformerPool;
@@ -31,12 +32,12 @@ import org.json.JSONTokener;
 import org.json.XML;
 
 /**
- * Perform an JSON to XML transformation
  *
  * @author Martijn Onstwedder
  * @author Tom van der Heijden
  */
 
+@IbisDescription(" Perform an JSON to XML transformation.") 
 public class JsonPipe extends FixedForwardPipe {
 	private String direction = "json2xml";
 	private String version = "1";

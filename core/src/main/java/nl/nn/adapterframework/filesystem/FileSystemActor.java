@@ -36,6 +36,7 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterList;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -49,7 +50,6 @@ import nl.nn.adapterframework.util.Misc;
 import nl.nn.adapterframework.util.XmlBuilder;
 
 /**
- * Worker class for {@link FileSystemPipe} and {@link FileSystemSender}.
  * 
  * <table align="top">
  * <tr><th>Action</th><th>Description</th><th>Configuration</th></tr>
@@ -78,6 +78,7 @@ import nl.nn.adapterframework.util.XmlBuilder;
  * 
  * @author Gerrit van Brakel
  */
+@IbisDescription(" Worker class for {@link FileSystemPipe} and {@link FileSystemSender}.") 
 public class FileSystemActor<F, FS extends IBasicFileSystem<F>> implements IOutputStreamingSupport {
 	protected Logger log = LogUtil.getLogger(this);
 	

@@ -28,6 +28,7 @@ import nl.nn.adapterframework.configuration.IbisContext;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.monitoring.MonitorManager;
 import nl.nn.adapterframework.parameters.Parameter;
@@ -42,12 +43,11 @@ import nl.nn.adapterframework.util.XmlUtils;
 import nl.nn.adapterframework.webcontrol.ConfigurationServlet;
 
 /**
- * Create a view for {@link nl.nn.adapterframework.http.RestListener}.
  *
  * 
  * @author Peter Leeuwenburgh
  */
-
+@IbisDescription(" Create a view for {@link nl.") 
 public class CreateRestViewPipe extends XsltPipe {
 	private static final String CONTENTTYPE = "contentType";
 	private static final String SRCPREFIX = "srcPrefix";

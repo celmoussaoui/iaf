@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
@@ -46,7 +47,6 @@ import nl.nn.adapterframework.util.DomBuilderException;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * QuerySender that transforms the input message to a query.
  * <br/><code><pre>
  *  select
  *  delete
@@ -71,6 +71,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * 
  * @author  Peter Leeuwenburgh
  */
+@IbisDescription(" QuerySender that transforms the input message to a query.") 
 public class XmlQuerySender extends JdbcQuerySenderBase {
 
 	public static final String TYPE_STRING = "string";

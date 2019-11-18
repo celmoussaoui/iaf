@@ -18,15 +18,16 @@ package nl.nn.adapterframework.pipes;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Pipe for converting special characters to their xml equivalents. 
  *
  * 
  * @author Peter Leeuwenburgh
  */
+@IbisDescription(" Pipe for converting special characters to their xml equivalents.") 
 public class XmlBuilderPipe extends FixedForwardPipe {
 
 	private String substringStart;

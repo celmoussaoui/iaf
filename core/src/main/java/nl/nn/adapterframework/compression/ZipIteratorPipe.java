@@ -30,6 +30,7 @@ import nl.nn.adapterframework.configuration.ConfigurationWarnings;
 import nl.nn.adapterframework.core.IDataIterator;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.SenderException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.pipes.IteratingPipe;
 import nl.nn.adapterframework.pipes.MessageSendingPipe;
@@ -41,7 +42,6 @@ import org.apache.commons.lang.StringUtils;
 
 
 /**
- * Sends a message to a Sender for each entry of its input, that must be an ZipInputStream. The input of the pipe must be one of:
  * <ul>
  * 	<li>String refering to a filename</li>
  *  <li>File</li>
@@ -64,6 +64,7 @@ import org.apache.commons.lang.StringUtils;
  * @author  Gerrit van Brakel
  * @since   4.9.10
  */
+@IbisDescription(" Sends a message to a Sender for each entry of its input, that must be an ZipInputStream.") 
 public class ZipIteratorPipe extends IteratingPipe {
 
 	private String contentsSessionKey="zipdata";

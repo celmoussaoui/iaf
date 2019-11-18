@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -54,12 +55,13 @@ import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
 /**
- * XmlValidator that will read the XSD's to use from a WSDL. As it extends the
+ * As it extends the
  * SoapValidator is will also add the SOAP envelope XSD.
  * 
  * @author Michiel Meeuwissen
  * @author Jaco de Groot
  */
+@IbisDescription(" XmlValidator that will read the XSD's to use from a WSDL.") 
 public class WsdlXmlValidator extends SoapValidator {
 	private static final Logger LOG = LogUtil.getLogger(WsdlXmlValidator.class);
 

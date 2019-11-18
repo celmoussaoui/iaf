@@ -19,16 +19,16 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 
 /**
- * Puts the input in the PipeLineSession, under the key specified by
- * <code>{@link #setSessionKey(String) sessionKey}</code>.
  *
  * @author Johan Verrips
  *
  * @see IPipeLineSession
  */
+@IbisDescription("Puts the input in the PipeLineSession, under the key specified by <code>{@link #setSessionKey(String) sessionKey}</code>.") 
 public class PutInSession extends FixedForwardPipe {
 	
     private String sessionKey;

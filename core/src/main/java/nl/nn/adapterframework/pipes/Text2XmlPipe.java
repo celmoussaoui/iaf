@@ -24,6 +24,7 @@ import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.EncapsulatingReader;
 import nl.nn.adapterframework.util.XmlUtils;
@@ -31,11 +32,11 @@ import nl.nn.adapterframework.util.XmlUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Pipe for converting text to or from xml. 
  *
  * 
  * @author J. Dekker
  */
+@IbisDescription(" Pipe for converting text to or from xml.") 
 public class Text2XmlPipe extends FixedForwardPipe {
 	private String xmlTag;
 	private boolean includeXmlDeclaration = true;

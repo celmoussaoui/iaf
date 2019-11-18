@@ -21,13 +21,14 @@ import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.PasswordHash;
 
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Hash a password or validate a password against a hash using PasswordHash.java
+ *java
  * from <a href="https://crackstation.net/hashing-security.htm">https://crackstation.net/hashing-security.htm</a>.
  * Input of the pipe is expected to be the password. In case hashSessionKey
  * isn't used a hash of the password is returned. In case hashSessionKey is used
@@ -44,6 +45,7 @@ import org.apache.commons.lang.StringUtils;
  * 
  * @author Jaco de Groot
  */
+@IbisDescription(" Hash a password or validate a password against a hash using PasswordHash.") 
 public class PasswordHashPipe extends FixedForwardPipe {
 	private static String FAILURE_FORWARD_NAME = "failure";
 	private String hashSessionKey;

@@ -15,16 +15,16 @@
 */
 package nl.nn.adapterframework.core;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 
 /**
- * The PipeLineExit, that represents a terminator of the PipeLine, provides a placeholder
- * for a path (corresponding to a pipeforward) and a state (that is returned to the receiver).
  *
  *
  * @author Johan Verrips
  * @author Niels Meijer
  */
+@IbisDescription("The PipeLineExit, that represents a terminator of the PipeLine, provides a placeholder for a path (corresponding to a pipeforward) and a state (that is returned to the receiver).") 
 public class PipeLineExit {
 	
 	public static final String EXIT_STATE_SUCCESS = "success";

@@ -29,17 +29,19 @@ import java.util.Iterator;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.XmlBuilder;
 
 /**
- * Pipe that reads a CRL from an input stream and transforms it to an XML.
+ *
  * The steam is closed after reading.
  * 
  * @author Miel Hoppenbrouwers
  * @author Jaco de Groot
  * @author Tom van der Heijden
  */
+@IbisDescription(" Pipe that reads a CRL from an input stream and transforms it to an XML.") 
 public class CrlPipe extends FixedForwardPipe {
 	private String issuerSessionKey;
 

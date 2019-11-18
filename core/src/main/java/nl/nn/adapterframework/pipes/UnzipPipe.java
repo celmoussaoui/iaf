@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -41,8 +42,6 @@ import nl.nn.adapterframework.util.Misc;
 import nl.nn.adapterframework.util.XmlUtils;
 
 /**
- * Assumes input to be the file name of a ZIP archive, and unzips it to a
- * directory and/or an XML message.
  * <br>
  * The output of each unzipped item is returned in XML as follows when
  * collectFileContents is false:
@@ -88,6 +87,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  * @since   4.9
  * @author  Gerrit van Brakel
  */
+@IbisDescription("Assumes input to be the file name of a ZIP archive, and unzips it to a directory and/or an XML message.") 
 public class UnzipPipe extends FixedForwardPipe {
 	
 	private String directory;

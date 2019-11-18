@@ -18,6 +18,7 @@ package nl.nn.adapterframework.http;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.soap.SOAPException;
 
@@ -30,12 +31,12 @@ import nl.nn.adapterframework.receivers.ServiceDispatcher_ServiceProxy;
 import nl.nn.adapterframework.util.AppConstants;
 
 /**
- * Posts a message to another IBIS-adapter as a WebService.
  *
  *
  * @author Gerrit van Brakel
  * @since 4.2
  */
+@IbisDescription(" Posts a message to another IBIS-adapter as a WebService.") 
 public class IbisWebServiceSender implements ISender, HasPhysicalDestination {
 
 	private String name;

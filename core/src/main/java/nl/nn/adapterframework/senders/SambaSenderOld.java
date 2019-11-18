@@ -32,6 +32,7 @@ import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.SenderWithParametersBase;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.ParameterList;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
@@ -45,7 +46,6 @@ import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Samba Sender: The standard Windows interoperability suite for Linux and Unix.
  * 
  * 
  * <p><b>Parameters:</b></p>
@@ -68,6 +68,7 @@ import org.apache.commons.lang.StringUtils;
  * @author	Niels Meijer
  * @since	7.1-B4
  */
+@IbisDescription(" Samba Sender: The standard Windows interoperability suite for Linux and Unix.") 
 public class SambaSenderOld extends SenderWithParametersBase {
 
 	private String domain = null;

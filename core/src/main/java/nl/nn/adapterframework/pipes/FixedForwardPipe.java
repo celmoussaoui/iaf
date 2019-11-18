@@ -23,6 +23,7 @@ import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.parameters.ParameterList;
@@ -31,7 +32,7 @@ import nl.nn.adapterframework.parameters.ParameterValueList;
 import nl.nn.adapterframework.processors.InputOutputPipeProcessor;
 
 /**
- * Provides a base-class for a Pipe that always has the same forward.
+ *
  * Ancestor classes should call <code>super.configure()</code> in their <code>configure()</code>-methods.
  *
  * <tr><td>{@link #setSkipOnEmptyInput(boolean) skipOnEmptyInput}</td><td>when set, this pipe is skipped</td><td>false</td></tr>
@@ -41,6 +42,7 @@ import nl.nn.adapterframework.processors.InputOutputPipeProcessor;
  * </p>
  * @author Gerrit van Brakel
  */
+@IbisDescription(" Provides a base-class for a Pipe that always has the same forward.") 
 public class FixedForwardPipe extends AbstractPipe {
 
     private String forwardName = "success";

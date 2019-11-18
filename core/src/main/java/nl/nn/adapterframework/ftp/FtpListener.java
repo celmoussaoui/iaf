@@ -26,6 +26,7 @@ import nl.nn.adapterframework.core.IPullingListener;
 import nl.nn.adapterframework.core.ListenerException;
 import nl.nn.adapterframework.core.PipeLineResult;
 import nl.nn.adapterframework.core.PipeLineSessionBase;
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.util.RunStateEnquirer;
 import nl.nn.adapterframework.util.RunStateEnquiring;
@@ -35,13 +36,14 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
 /**
- * Listener that polls a directory via FTP for files according to a wildcard. 
+ * 
  * When a file is found, it is moved to an outputdirectory, so that it isn't found more then once.  
  * The name of the moved file is passed to the pipeline.  
  *
  *
  * @author  John Dekker
  */
+@IbisDescription(" Listener that polls a directory via FTP for files according to a wildcard.") 
 public class FtpListener extends FtpSession implements IPullingListener, INamedObject, RunStateEnquiring {
 
 	private LinkedList remoteFilenames;

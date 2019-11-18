@@ -15,6 +15,7 @@
 */
 package nl.nn.adapterframework.senders;
 
+import nl.nn.adapterframework.doc.IbisDescription; 
 import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.log4j.Logger;
 
@@ -25,7 +26,6 @@ import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.util.LogUtil;
 
 /**
- * Baseclass for senders.
  * 
  * @author  Gerrit van Brakel
  * @since   4.9
