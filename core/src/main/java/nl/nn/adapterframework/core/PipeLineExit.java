@@ -22,6 +22,21 @@ import nl.nn.adapterframework.doc.IbisDoc;
  * for a path (corresponding to a pipeforward) and a state (that is returned to the receiver).
  *
  *
+ * <p>
+ * <b>example:</b> <code><pre>
+ *   &lt;exits&gt;
+ *      &lt;exit path="EXIT" state="success" /&gt;
+ *      &lt;exit path="Created" state="error" code="201" empty="true" /&gt;
+ *      &lt;exit path="NotModified" state="error" code="304" empty="true" /&gt;
+ *      &lt;exit path="BadRequest" state="error" code="400" empty="true" /&gt;
+ *      &lt;exit path="NotAuthorized" state="error" code="401" empty="true" /&gt;
+ *      &lt;exit path="NotAllowed" state="error" code="403" empty="true" /&gt;
+ *      &lt;exit path="Teapot" state="success" code="418" /&gt;
+ *      &lt;exit path="ServerError" state="error" code="500" /&gt;
+ *   &lt;/exits&gt;
+ * </pre></code>
+ * </p>
+ *
  * @author Johan Verrips
  * @author Niels Meijer
  */
