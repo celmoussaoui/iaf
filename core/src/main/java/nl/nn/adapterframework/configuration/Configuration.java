@@ -48,9 +48,9 @@ import nl.nn.adapterframework.util.RunStateEnum;
  */
 public class Configuration {
     protected Logger log = LogUtil.getLogger(this);
-    private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    private ClassLoader configurationClassLoader = Thread.currentThread().getContextClassLoader();
 
-	private boolean autoStart = AppConstants.getInstance().getBoolean("configurations.autoStart", true);
+	private boolean autoStart = AppConstants.getInstance(configurationClassLoader).getBoolean("configurations.autoStart", true);
 
     private AdapterService adapterService;
 
@@ -137,7 +137,7 @@ public class Configuration {
 	}
 
 	public ClassLoader getClassLoader() {
-		return classLoader;
+		return configurationClassLoader;
 	}
 
 	public void setAutoStart(boolean autoStart) {
@@ -146,6 +146,10 @@ public class Configuration {
 
 	public boolean isAutoStart() {
 		return autoStart;
+	}
+
+	public boolean isStubbed() {
+		return ConfigurationUtils.isConfigurationStubbed(getClassLoader());
 	}
 
 	/**
@@ -288,21 +292,8 @@ public class Configuration {
 		return version;
 	}
 
-	/**
-	 * @deprecated replaced by setName(String)
-	 */
-	@Deprecated
-	public void setConfigurationName(String name) {
-		this.name = name;
-	}
-
-
 	public String getClassLoaderType() {
-		return AppConstants.getInstance().getString("configurations." + getName() + ".classLoaderType", classLoader.getParent().getClass().getSimpleName());
-
-		//TODO Make this work again by removing the reload() method from all classloader constructors. The constructor it selves must not throw an expection/
-		//TODO Refactor ClassLoaderManager.createClassloader()
-//		return classLoader.getParent().getClass().getSimpleName();
+		return configurationClassLoader.getClass().getSimpleName();
 	}
 
 	public void setIbisManager(IbisManager ibisManager) {

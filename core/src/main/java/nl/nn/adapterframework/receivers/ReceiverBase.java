@@ -611,13 +611,13 @@ public class ReceiverBase implements IReceiver, IReceiverStatistics, IMessageHan
 			
 			ISender errorSender = getErrorSender();
 			if (errorSender!=null) {
-				errorSender.configure();
 				if (errorSender instanceof HasPhysicalDestination) {
 					info(getLogPrefix()+"has errorSender to "+((HasPhysicalDestination)errorSender).getPhysicalDestinationName());
 				}
 				if (errorSender instanceof ConfigurationAware) {
 					((ConfigurationAware)errorSender).setConfiguration(getAdapter().getConfiguration());
 				}
+				errorSender.configure();
 			}
 			ITransactionalStorage errorStorage = getErrorStorage();
 			if (errorStorage!=null) {
@@ -757,12 +757,15 @@ public class ReceiverBase implements IReceiver, IReceiverStatistics, IMessageHan
 			if (currentRunState.equals(RunStateEnum.STARTING)
 					|| currentRunState.equals(RunStateEnum.STOPPING)
 					|| currentRunState.equals(RunStateEnum.STOPPED)) {
-				String msg =
-					"receiver currently in state [" + currentRunState + "], ignoring stop() command";
-				warn(msg);
+				warn("receiver currently in state [" + currentRunState + "], ignoring stop() command");
 				return;
 			}
-			runState.setRunState(RunStateEnum.STOPPING);
+			if (currentRunState.equals(RunStateEnum.ERROR)) {
+				warn("receiver currently in state [" + currentRunState + "], stopping immediately");
+				runState.setRunState(RunStateEnum.STOPPED);
+			} else {
+				runState.setRunState(RunStateEnum.STOPPING);
+			}
 		}
 		tellResourcesToStop();
 		NDC.remove();

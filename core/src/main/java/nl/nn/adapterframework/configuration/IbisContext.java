@@ -66,28 +66,6 @@ public class IbisContext extends IbisApplicationContext {
 	private static final long UPTIME = System.currentTimeMillis();
 
 	static {
-		String applicationServerType = System.getProperty(
-				APPLICATION_SERVER_TYPE_PROPERTY);
-		if (StringUtils.isNotEmpty(applicationServerType)) {
-			if (applicationServerType.equalsIgnoreCase("WAS5")
-					|| applicationServerType.equalsIgnoreCase("WAS6")) {
-				ConfigurationWarnings configWarnings = ConfigurationWarnings
-						.getInstance();
-				String msg = "implementing value [" + applicationServerType
-						+ "] of property [" + APPLICATION_SERVER_TYPE_PROPERTY
-						+ "] as [WAS]";
-				configWarnings.add(LOG, msg);
-				System.setProperty(APPLICATION_SERVER_TYPE_PROPERTY, "WAS");
-			} else if (applicationServerType.equalsIgnoreCase("TOMCAT6")) {
-				ConfigurationWarnings configWarnings = ConfigurationWarnings
-						.getInstance();
-				String msg = "implementing value [" + applicationServerType
-						+ "] of property [" + APPLICATION_SERVER_TYPE_PROPERTY
-						+ "] as [TOMCAT]";
-				configWarnings.add(LOG, msg);
-				System.setProperty(APPLICATION_SERVER_TYPE_PROPERTY, "TOMCAT");
-			}
-		}
 		if(!Boolean.parseBoolean(AppConstants.getInstance().getProperty("jdbc.convertFieldnamesToUppercase")))
 			ConfigurationWarnings.getInstance().add(LOG, "DEPRECATED: jdbc.convertFieldnamesToUppercase is set to false, please set to true. XML field definitions of SQL senders will be uppercased!");
 
@@ -102,19 +80,6 @@ public class IbisContext extends IbisApplicationContext {
 	private FlowDiagram flowDiagram;
 	private ClassLoaderManager classLoaderManager = null;
 	private static List<String> loadingConfigs = new ArrayList<String>();
-
-	public void setDefaultApplicationServerType(String defaultApplicationServerType) {
-		if (defaultApplicationServerType.equals(getApplicationServerType())) {
-			ConfigurationWarnings configWarnings = ConfigurationWarnings.getInstance();
-			String msg = "property [" + APPLICATION_SERVER_TYPE_PROPERTY + "] already has a default value [" + defaultApplicationServerType + "]";
-			configWarnings.add(LOG, msg);
-		} else if (StringUtils.isEmpty(getApplicationServerType())) {
-			// Resolve application.server.type in ServerSpecifics*.properties, SideSpecifics*.properties and StageSpecifics*.properties filenames
-			APP_CONSTANTS.putAdditionalPropertiesFilesSubstVarsProperty(APPLICATION_SERVER_TYPE_PROPERTY, defaultApplicationServerType);
-			// Resolve application.server.type in spring.xml filenames
-			APP_CONSTANTS.putPropertyPlaceholderConfigurerProperty(APPLICATION_SERVER_TYPE_PROPERTY, defaultApplicationServerType);
-		}
-	}
 
 	public static String getApplicationServerType() {
 		return AppConstants.getInstance().getResolvedProperty(APPLICATION_SERVER_TYPE_PROPERTY);
@@ -207,20 +172,34 @@ public class IbisContext extends IbisApplicationContext {
 		log("shutdown in " + (System.currentTimeMillis() - start) + " ms");
 	}
 
+	/**
+	 * Reloads the given configuration. First it checks if the resources can be found. 
+	 * It then replaces the old resources with the new resources. If all is successful 
+	 * it will unload the old configuration from the IbisManager, and load the new 
+	 * configuration.
+	 */
 	public synchronized void reload(String configurationName) {
-		unload(configurationName);
-		load(configurationName);
+		try {
+			classLoaderManager.reload(configurationName);
+			unload(configurationName);
+			load(configurationName);
+		} catch (ConfigurationException e) {
+			log(configurationName, null, "failed to reload", MessageKeeperMessage.ERROR_LEVEL, e);
+		}
 	}
 
+	/**
+	 * Be aware that the configuration may be unloaded but it's resources wont!
+	 * There is currently no way to cleanup old classloaders, these are kept in memory. 
+	 * Removing the classloader will cause a classloader-leak, leaving a small footprint behind in memory!
+	 */
 	public void unload(String configurationName) {
 		Configuration configuration = ibisManager.getConfiguration(configurationName);
 		if (configuration != null) {
 			long start = System.currentTimeMillis();
 			ibisManager.unload(configurationName);
 			if (configuration.getAdapterService().getAdapters().size() > 0) {
-				log("Not all adapters are unregistered: "
-						+ configuration.getAdapterService().getAdapters(),
-						MessageKeeperMessage.ERROR_LEVEL);
+				log("Not all adapters are unregistered: " + configuration.getAdapterService().getAdapters(), MessageKeeperMessage.ERROR_LEVEL);
 			}
 			// Improve configuration reload performance. Probably because
 			// garbage collection will be easier.
@@ -230,8 +209,7 @@ public class IbisContext extends IbisApplicationContext {
 			log(configurationName, configurationVersion, msg);
 			secLog.info("Configuration [" + configurationName + "] [" + configurationVersion+"] " + msg);
 		} else {
-			log("Configuration [" + configurationName + "] to unload not found",
-					MessageKeeperMessage.WARN_LEVEL);
+			log("Configuration [" + configurationName + "] to unload not found", MessageKeeperMessage.WARN_LEVEL);
 		}
 		JdbcUtil.resetJdbcProperties();
 	}
@@ -319,14 +297,18 @@ public class IbisContext extends IbisApplicationContext {
 
 				} catch (ConfigurationException e) {
 					customClassLoaderConfigurationException = e;
+					if(LOG.isDebugEnabled()) LOG.debug("configuration ["+currentConfigurationName+"] got exception creating/retrieving classloader type ["+classLoaderType+"] errorMessage ["+e.getMessage()+"]");
 				}
 
+				if(LOG.isDebugEnabled()) LOG.debug("configuration ["+currentConfigurationName+"] found classloader ["+classLoader+"]");
 				try {
 					loadingConfigs.add(currentConfigurationName);
 					digestClassLoaderConfiguration(classLoader, configurationDigester, currentConfigurationName, customClassLoaderConfigurationException);
 				} finally {
 					loadingConfigs.remove(currentConfigurationName);
 				}
+
+				LOG.info("configuration ["+currentConfigurationName+"] loaded successfully");
 			}
 		}
 
@@ -343,14 +325,10 @@ public class IbisContext extends IbisApplicationContext {
 			ConfigurationException customClassLoaderConfigurationException) {
 
 		long start = System.currentTimeMillis();
-		try {
-			if(classLoader != null)
-				classLoaderManager.reload(classLoader);
-		} catch (ConfigurationException e) {
-			customClassLoaderConfigurationException = e;
-		}
+		if(LOG.isDebugEnabled()) LOG.debug("creating new configuration ["+currentConfigurationName+"]");
 
 		String currentConfigurationVersion = ConfigurationUtils.getConfigurationVersion(classLoader);
+		if(LOG.isDebugEnabled()) LOG.debug("configuration ["+currentConfigurationName+"] found currentConfigurationVersion ["+currentConfigurationVersion+"]");
 
 		Configuration configuration = null;
 		ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
@@ -387,8 +365,7 @@ public class IbisContext extends IbisApplicationContext {
 				}
 				if (!currentConfigurationName.equals(configuration.getName())) {
 					log(currentConfigurationName, currentConfigurationVersion, "configuration name doesn't match Configuration name attribute: " + configuration.getName(), MessageKeeperMessage.WARN_LEVEL);
-					messageKeepers.put(configuration.getName(),
-							messageKeepers.remove(currentConfigurationName));
+					messageKeepers.put(configuration.getName(), messageKeepers.remove(currentConfigurationName));
 				}
 
 				String msg;
@@ -405,6 +382,8 @@ public class IbisContext extends IbisApplicationContext {
 			} else {
 				throw customClassLoaderConfigurationException;
 			}
+
+			LOG.info("configured configuration ["+currentConfigurationName+"] successfully");
 		} catch (ConfigurationException e) {
 			configuration.setConfigurationException(e);
 			log(currentConfigurationName, currentConfigurationVersion, " exception", MessageKeeperMessage.ERROR_LEVEL, e);
@@ -543,12 +522,8 @@ public class IbisContext extends IbisApplicationContext {
 		return APP_CONSTANTS.getProperty("instance.name", null);
 	}
 
-	public String getApplicationVersion() {
-		return ConfigurationUtils.getVersion(null, "instance.version", "instance.build_id");
-	}
-
-	public String getFrameworkVersion() {
-		return APP_CONSTANTS.getProperty("application.version", null);
+	private String getApplicationVersion() {
+		return ConfigurationUtils.getApplicationVersion();
 	}
 
 	public Date getUptimeDate() {
@@ -565,10 +540,5 @@ public class IbisContext extends IbisApplicationContext {
 
 	public boolean isLoadingConfigs() {
 		return !loadingConfigs.isEmpty();
-	}
-	
-	public static void main(String[] args) {
-		IbisContext ibisContext = new IbisContext();
-		ibisContext.init();
 	}
 }

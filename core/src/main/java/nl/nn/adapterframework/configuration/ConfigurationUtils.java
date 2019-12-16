@@ -74,14 +74,12 @@ public class ConfigurationUtils {
 	private static final boolean CONFIG_AUTO_DB_CLASSLOADER = APP_CONSTANTS.getBoolean("configurations.autoDatabaseClassLoader", false);
 	private static final String CONFIGURATIONS = APP_CONSTANTS.getResolvedProperty("configurations.names.application");
 	public static String ADDITIONAL_PROPERTIES_FILE_SUFFIX = APP_CONSTANTS.getString("ADDITIONAL.PROPERTIES.FILE.SUFFIX", null);
+	public static final String DEFAULT_CONFIGURATION_FILE = "Configuration.xml";
 
-	public static boolean stubConfiguration() {
-		return stubConfiguration(null);
-	}
 	/**
-	 * TODO: make this method public and create STUB per configuration
+	 * Checks if a configuration is stubbed or not
 	 */
-	private static boolean stubConfiguration(ClassLoader classLoader) {
+	public static boolean isConfigurationStubbed(ClassLoader classLoader) {
 		return AppConstants.getInstance(classLoader).getBoolean(STUB4TESTTOOL_CONFIGURATION_KEY, false);
 	}
 
@@ -89,7 +87,7 @@ public class ConfigurationUtils {
 		Map<String, Object> parameters = new Hashtable<String, Object>();
 		// Parameter disableValidators has been used to test the impact of
 		// validators on memory usage.
-		parameters.put("disableValidators", AppConstants.getInstance().getBoolean(STUB4TESTTOOL_VALIDATORS_DISABLED_KEY, false));
+		parameters.put("disableValidators", AppConstants.getInstance(configuration.getClassLoader()).getBoolean(STUB4TESTTOOL_VALIDATORS_DISABLED_KEY, false));
 		return getTweakedConfiguration(configuration, originalConfig, STUB4TESTTOOL_XSLT, parameters);
 	}
 
@@ -128,8 +126,11 @@ public class ConfigurationUtils {
 	public static String getConfigurationFile(ClassLoader classLoader, String currentConfigurationName) {
 		String configFileKey = "configurations." + currentConfigurationName + ".configurationFile";
 		String configurationFile = AppConstants.getInstance(classLoader).getResolvedProperty(configFileKey);
+		if (StringUtils.isEmpty(configurationFile) && classLoader != null) {
+			configurationFile = AppConstants.getInstance(classLoader.getParent()).getResolvedProperty(configFileKey);
+		}
 		if (StringUtils.isEmpty(configurationFile)) {
-			configurationFile = "Configuration.xml";
+			configurationFile = DEFAULT_CONFIGURATION_FILE;
 		}
 		return configurationFile;
 	}
@@ -138,7 +139,11 @@ public class ConfigurationUtils {
 		return getVersion(classLoader, "configuration.version", "configuration.timestamp");
 	}
 
-	public static String getVersion(ClassLoader classLoader, String versionKey, String timestampKey) {
+	public static String getApplicationVersion() {
+		return getVersion(ConfigurationUtils.class.getClassLoader(), "instance.version", "instance.timestamp");
+	}
+
+	private static String getVersion(ClassLoader classLoader, String versionKey, String timestampKey) {
 		AppConstants constants = AppConstants.getInstance(classLoader);
 		String version = null;
 		if (StringUtils.isNotEmpty(constants.getProperty(versionKey))) {

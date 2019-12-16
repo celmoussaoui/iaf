@@ -192,7 +192,7 @@ public class MessageSendingPipe extends StreamingPipe implements HasSender, HasS
 	
 	private boolean timeoutPending=false;
 
-	boolean checkMessageLog = AppConstants.getInstance().getBoolean("messageLog.check", false);
+	boolean checkMessageLog = AppConstants.getInstance(getConfigurationClassLoader()).getBoolean("messageLog.check", false);
 
 	private PipeProcessor pipeProcessor;
 	private ListenerProcessor listenerProcessor;
@@ -236,7 +236,7 @@ public class MessageSendingPipe extends StreamingPipe implements HasSender, HasS
 		if (StringUtils.isNotEmpty(getStubFileName())) {
 			URL stubUrl;
 			try {
-				stubUrl = ClassUtils.getResourceURL(classLoader, getStubFileName());
+				stubUrl = ClassUtils.getResourceURL(getConfigurationClassLoader(), getStubFileName());
 			} catch (Throwable e) {
 				throw new ConfigurationException(getLogPrefix(null)+"got exception finding resource for stubfile ["+getStubFileName()+"]", e);
 			}
@@ -299,7 +299,7 @@ public class MessageSendingPipe extends StreamingPipe implements HasSender, HasS
 				if (findForward(ILLEGAL_RESULT_FORWARD) == null)
 					throw new ConfigurationException(getLogPrefix(null) + "has no forward with name [illegalResult]");
 			}
-			if (!ConfigurationUtils.stubConfiguration()) {
+			if (!ConfigurationUtils.isConfigurationStubbed(getConfigurationClassLoader())) {
 				if (StringUtils.isNotEmpty(getTimeOutOnResult())) {
 					throw new ConfigurationException(getLogPrefix(null)+"timeOutOnResult only allowed in stub mode");
 				}
@@ -345,17 +345,17 @@ public class MessageSendingPipe extends StreamingPipe implements HasSender, HasS
 					getAdapter().getMessageKeeper().add(msg);
 			}
 			if (StringUtils.isNotEmpty(getAuditTrailXPath())) {
-				auditTrailTp = TransformerPool.configureTransformer(getLogPrefix(null), classLoader, getAuditTrailNamespaceDefs(), getAuditTrailXPath(), null,"text",false,null);
+				auditTrailTp = TransformerPool.configureTransformer(getLogPrefix(null), getConfigurationClassLoader(), getAuditTrailNamespaceDefs(), getAuditTrailXPath(), null,"text",false,null);
 			}
 			if (StringUtils.isNotEmpty(getCorrelationIDXPath()) || StringUtils.isNotEmpty(getCorrelationIDStyleSheet())) {
-				correlationIDTp=TransformerPool.configureTransformer(getLogPrefix(null), classLoader, getCorrelationIDNamespaceDefs(), getCorrelationIDXPath(), getCorrelationIDStyleSheet(),"text",false,null);
+				correlationIDTp=TransformerPool.configureTransformer(getLogPrefix(null), getConfigurationClassLoader(), getCorrelationIDNamespaceDefs(), getCorrelationIDXPath(), getCorrelationIDStyleSheet(),"text",false,null);
 			}
 			if (StringUtils.isNotEmpty(getLabelXPath()) || StringUtils.isNotEmpty(getLabelStyleSheet())) {
-				labelTp=TransformerPool.configureTransformer(getLogPrefix(null), classLoader, getLabelNamespaceDefs(), getLabelXPath(), getLabelStyleSheet(),"text",false,null);
+				labelTp=TransformerPool.configureTransformer(getLogPrefix(null), getConfigurationClassLoader(), getLabelNamespaceDefs(), getLabelXPath(), getLabelStyleSheet(),"text",false,null);
 			}
 		}
 		if (StringUtils.isNotEmpty(getRetryXPath())) {
-			retryTp = TransformerPool.configureTransformer(getLogPrefix(null), classLoader, getRetryNamespaceDefs(), getRetryXPath(), null,"text",false,null);
+			retryTp = TransformerPool.configureTransformer(getLogPrefix(null), getConfigurationClassLoader(), getRetryNamespaceDefs(), getRetryXPath(), null,"text",false,null);
 		}
 		IPipe inputValidator = getInputValidator();
 		IPipe outputValidator = getOutputValidator();
@@ -447,7 +447,7 @@ public class MessageSendingPipe extends StreamingPipe implements HasSender, HasS
 	
 	@Override
 	public PipeRunResult doPipe(Object input, IPipeLineSession session, MessageOutputStream target) throws PipeRunException {
-		String originalMessage = input.toString();
+		String originalMessage = input==null?null:input.toString();
 		String result = null;
 		String correlationID = session.getMessageId();
 
@@ -487,7 +487,7 @@ public class MessageSendingPipe extends StreamingPipe implements HasSender, HasS
 				}
 				if (sfn != null) {
 					try {
-						result = Misc.resourceToString(ClassUtils.getResourceURL(classLoader, sfn), SystemUtils.LINE_SEPARATOR);
+						result = Misc.resourceToString(ClassUtils.getResourceURL(getConfigurationClassLoader(), sfn), SystemUtils.LINE_SEPARATOR);
 						log.info(getLogPrefix(session)+"returning result from dynamic stub ["+sfn+"]");
 					} catch (Throwable e) {
 						throw new PipeRunException(this,getLogPrefix(session)+"got exception loading result from stub [" + sfn + "]",e);
@@ -760,7 +760,7 @@ public class MessageSendingPipe extends StreamingPipe implements HasSender, HasS
 			if  (pipeline!=null) {
 				Adapter adapter = pipeline.getAdapter();
 				if (adapter!=null) {
-					if (getPresumedTimeOutInterval()>=0 && !ConfigurationUtils.stubConfiguration()) {
+					if (getPresumedTimeOutInterval()>=0 && !ConfigurationUtils.isConfigurationStubbed(getConfigurationClassLoader())) {
 						long lastExitIsTimeoutDate = adapter.getLastExitIsTimeoutDate(getName());
 						if (lastExitIsTimeoutDate>0) {
 							long duration = startTime - lastExitIsTimeoutDate;
@@ -801,7 +801,7 @@ public class MessageSendingPipe extends StreamingPipe implements HasSender, HasS
 			if  (pipeline!=null) {
 				Adapter adapter = pipeline.getAdapter();
 				if (adapter!=null) {
-					if (getPresumedTimeOutInterval()>=0 && !ConfigurationUtils.stubConfiguration()) {
+					if (getPresumedTimeOutInterval()>=0 && !ConfigurationUtils.isConfigurationStubbed(getConfigurationClassLoader())) {
 						if (!PRESUMED_TIMEOUT_FORWARD.equals(exitState)) {
 							adapter.setLastExitState(getName(), System.currentTimeMillis(), exitState);
 						}

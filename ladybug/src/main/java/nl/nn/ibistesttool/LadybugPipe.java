@@ -20,7 +20,9 @@ import java.io.StringWriter;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
@@ -63,10 +65,13 @@ public class LadybugPipe extends FixedForwardPipe {
 	private boolean writeToLog = false;
 	private boolean writeToSystemOut = false;
 	private boolean checkRoles = false;
+	private boolean enableReportGenerator = false;
 	private TestTool testTool;
 	private TestStorage testStorage;
 	private Storage debugStorage; 
 	private ReportXmlTransformer reportXmlTransformer;
+	private String exclude;
+	private Pattern excludeRegexPattern;
 
 	@Override
 	public void configure() throws ConfigurationException {
@@ -74,6 +79,9 @@ public class LadybugPipe extends FixedForwardPipe {
 		failureForward = findForward(FAILURE_FORWARD_NAME);
 		if (failureForward == null) {
 			failureForward = getForward();
+		}
+		if (StringUtils.isNotEmpty(exclude)) {
+			excludeRegexPattern = Pattern.compile(exclude);
 		}
 	}
 
@@ -87,7 +95,11 @@ public class LadybugPipe extends FixedForwardPipe {
 			List<Integer> storageIds = testStorage.getStorageIds();
 			for (Integer storageId : storageIds) {
 				Report report = testStorage.getReport(storageId);
-				reports.add(report);
+				String fullReportPath = (report.getPath() != null ? report.getPath() : "") + report.getName();
+				
+				if(excludeRegexPattern == null || !excludeRegexPattern.matcher(fullReportPath).matches()) {
+					reports.add(report);
+				}
 			}
 		} catch (StorageException e) {
 			errorCount++;
@@ -96,7 +108,15 @@ public class LadybugPipe extends FixedForwardPipe {
 		ReportRunner reportRunner = new ReportRunner();
 		reportRunner.setTestTool(testTool);
 		reportRunner.setSecurityContext(new IbisSecurityContext(session, checkRoles));
+		boolean reportGeneratorEnabledOldValue = testTool.getReportGeneratorEnabled();
+		if(enableReportGenerator) {
+			testTool.setReportGeneratorEnabled(true);
+		}
 		reportRunner.run(reports, false, true);
+		if(enableReportGenerator) {
+			testTool.setReportGeneratorEnabled(reportGeneratorEnabledOldValue);
+		}
+		
 		for (Report report : reports) {
 			RunResult runResult = reportRunner.getResults().get(report.getStorageId());
 			if (runResult.errorMessage != null) {
@@ -179,6 +199,17 @@ public class LadybugPipe extends FixedForwardPipe {
 			+ "is autorised and/or you want the enforce the roles as configured for the Ladybug", "false"})
 	public void setCheckRoles(boolean checkRoles) {
 		this.checkRoles = checkRoles;
+	}
+	
+	@IbisDoc({"Set to <code>true</code> to enable Ladybug's report generator for the duration of the scheduled report runs, "
+			+ "then revert it to its original setting", "false"})
+	public void setEnableReportGenerator(boolean enabled) {
+		enableReportGenerator = enabled;
+	}
+	
+	@IbisDoc({"When set, reports with a full path (path + name) that matches with the specified regular expression are skipped. For example, \"/Unscheduled/.*\" or \".*SKIP\".", ""})
+	public void setExclude(String exclude) {
+		this.exclude = exclude;
 	}
 
 	public void setTestTool(TestTool testTool) {
