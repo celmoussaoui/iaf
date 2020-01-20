@@ -771,7 +771,7 @@ public class IbisDocPipe extends FixedForwardPipe {
 					if (beanComplexType != null) {
 						attribute = new XmlBuilder("attribute");
 						attribute.addAttribute("name", property);
-						attribute.addAttribute("type", "xs:string");
+//						attribute.addAttribute("type", "xs:string");
 						if (property.equals("name")) {
 							attribute.addAttribute("use", "required");
 						}
@@ -796,6 +796,24 @@ public class IbisDocPipe extends FixedForwardPipe {
 							attribute.addSubElement(annotation);
 							annotation.addSubElement(documentation);
 							documentation.setValue(ibisDocValue);
+
+							IbisDocEnum ibisDocEnum = AnnotationUtils.findAnnotation(method, IbisDocEnum.class);
+							if (ibisDocEnum != null) {
+								XmlBuilder simpleType = new XmlBuilder("simpleType");
+								XmlBuilder restriction = new XmlBuilder("restriction");
+								restriction.addAttribute("base", "xs:string");
+
+								for (String str : ibisDocEnum.value()) {
+									XmlBuilder enumeration = new XmlBuilder("enumeration");
+									enumeration.addAttribute("value", str);
+									restriction.addSubElement(enumeration);
+								}
+
+								simpleType.addSubElement(restriction);
+								attribute.addSubElement(simpleType);
+							} else {
+								attribute.addAttribute("type", "xs:string");
+							}
 						}
 						if (beanHtml != null) {
 							String ibisDocValue = ibisDocValues[0];
