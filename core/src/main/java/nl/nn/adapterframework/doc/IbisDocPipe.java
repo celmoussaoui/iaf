@@ -150,14 +150,18 @@ public class IbisDocPipe extends FixedForwardPipe {
 	}
 	// Cache groups for better performance, don't use it directly, use getGroups()
 	private static Map<String, TreeSet<IbisBean>> cachedGroups;
-	private static Map<String, String> errors = new HashMap<String, String>();
+	private static Map<String, String> errors = new HashMap<>();
 
+    /**
+     * Get all the classes that need to be in the XSD and ibisdoc
+     * @return
+     */
 	static synchronized Map<String, TreeSet<IbisBean>> getGroups() {
 		if (cachedGroups == null) {
-			Map<String, TreeSet<IbisBean>> groups = new LinkedHashMap<String, TreeSet<IbisBean>>();
-			addIbisBeans("Listeners", getClass("nl.nn.adapterframework.core.IListener"), groups);
-			addIbisBeans("Senders", getClass("nl.nn.adapterframework.core.ISender"), groups);
-			addIbisBeans("Pipes", getClass("nl.nn.adapterframework.core.IPipe"), groups);
+			Map<String, TreeSet<IbisBean>> groups = new LinkedHashMap<>();
+			addIbisBeans("Listeners", getClass("nl.nn.adapterframework.core.IListener"), null, groups);
+			addIbisBeans("Senders", getClass("nl.nn.adapterframework.core.ISender"), null, groups);
+			addIbisBeans("Pipes", getClass("nl.nn.adapterframework.core.IPipe"), null, groups);
 			addIbisBeans("ErrorStorages", getClass("nl.nn.adapterframework.core.ITransactionalStorage"), "TransactionalStorage", groups);
 			addIbisBeans("MessageLogs", getClass("nl.nn.adapterframework.core.ITransactionalStorage"), "TransactionalStorage", groups);
 			addIbisBeans("ErrorSenders", getClass("nl.nn.adapterframework.core.ISender"), "Sender", groups);
@@ -183,42 +187,79 @@ public class IbisDocPipe extends FixedForwardPipe {
 		return cachedGroups;
 	}
 
-	private static void addIbisBeans(String group, Class<?> clazz, Map<String, TreeSet<IbisBean>> groups) {
-		addIbisBeans(group, clazz, null, groups);
-	}
 
+    /**
+     * Add all the subclasses of this class to the group
+     * @param group - The group in which it should be added (Pipes, Listeners, ...)
+     * @param clazz - The interface that is the superclass
+     * @param nameLastPartToReplaceWithGroupName - the name part that has to be replaced with the group name
+     * @param groups - The map with the TreeSets containing all the IbisBeans/Classes
+     */
 	private static void addIbisBeans(String group, Class<?> clazz, String nameLastPartToReplaceWithGroupName,
 			Map<String, TreeSet<IbisBean>> groups) {
-		TreeSet<IbisBean> ibisBeans = new TreeSet<IbisBean>();
+	    // Create the TreeSet of all the IbisBeans/Classes
+		TreeSet<IbisBean> ibisBeans = new TreeSet<>();
+
+		// If this is one of the interfaces (IPipe, IListener, ...)
 		if (clazz != null && clazz.isInterface()) {
+
+		    // Get all the subclasses
 			Set<SpringBean> springBeans = getSpringBeans(clazz);
+
+			// For each subclass we add it to the TreeSet
 			for (SpringBean springBean : springBeans) {
-				addIbisBean(group, toUpperCamelCase(springBean.getName()), nameLastPartToReplaceWithGroupName,
-						springBean.getClazz(), ibisBeans);
+				// If it is an actual subclass
+				if (clazz.isAssignableFrom(springBean.getClazz())) {
+					addIbisBean(group, toUpperCamelCase(springBean.getName()), nameLastPartToReplaceWithGroupName,
+							springBean.getClazz(), ibisBeans);
+				}
 			}
 		}
+		// Add the TreeSet to the Map with all IbisBeans/Classes
 		groups.put(group, ibisBeans);
 	}
 
+    /**
+     * Create new groups for certain sets of IbisBeans/Classes
+     * @param group - The new group formed
+     * @param ibisBeansUnfiltered - The original group they will be copied from
+     * @param nameLastPartToReplaceWithGroupName - the name part that has to be replaced with the group name
+     * @param groups - The map with the TreeSets containing all the IbisBeans/Classes
+     */
 	private static void addIbisBeans(String group, TreeSet<IbisBean> ibisBeansUnfiltered,
 			String nameLastPartToReplaceWithGroupName, Map<String, TreeSet<IbisBean>> groups) {
-		TreeSet<IbisBean> ibisBeans = new TreeSet<IbisBean>();
+		TreeSet<IbisBean> ibisBeans = new TreeSet<>();
+		// For each IbisBean/Class in the original group
 		for (IbisBean ibisBean : ibisBeansUnfiltered) {
+		    // If the name ends with a certain String
 			if (ibisBean.getName().endsWith(nameLastPartToReplaceWithGroupName)) {
+			    // Add to the new formed group as well
 				addIbisBean(group, ibisBean.getName(), nameLastPartToReplaceWithGroupName, ibisBean.getClazz(), ibisBeans);
 			}
 		}
+		// Add the new TreeSet to the Map with all IbisBeans/Classes
 		groups.put(group, ibisBeans);
 	}
 
+    /**
+     * Create a new IbisBean and add it to the TreeSet
+     * @param group - The group name in which this IbisBean resides
+     * @param fqBeanName - the name of the IbisBean to be added
+     * @param nameLastPartToReplaceWithGroupName - The name part that will be replaced with the group name
+     * @param clazz - The class of the IbisBean
+     * @param ibisBeans - The TreeSet in which the IbisBean will be added
+     */
 	private static void addIbisBean(String group, String fqBeanName, String nameLastPartToReplaceWithGroupName,
 			Class<?> clazz, TreeSet<IbisBean> ibisBeans) {
+	    // Get the last word in the complete class name
 		int i = fqBeanName.lastIndexOf(".");
 		String beanName = fqBeanName;
 		if(i != -1) {
 			beanName = fqBeanName.substring(i+1);
 		}
+		// If the name part has a replacement string
 		if (nameLastPartToReplaceWithGroupName != null) {
+		    // Replace the name part with the group name
 			if (beanName.endsWith(nameLastPartToReplaceWithGroupName)) {
 				ibisBeans.add(new IbisBean(replaceNameLastPartWithGroupName(group, beanName, nameLastPartToReplaceWithGroupName), clazz));
 			}
@@ -232,10 +273,17 @@ public class IbisDocPipe extends FixedForwardPipe {
 			if (beanName.equals("GenericMessageSendingPipe")) {
 				beanName = "SenderPipe";
 			}
+
+			// Add the new IbisBean to the TreeSet
 			ibisBeans.add(new IbisBean(beanName, clazz));
 		}
 	}
 
+    /**
+     * Get the Subclasses of an interface
+     * @param interfaze - the interface (IPipe, IListener, ...)
+     * @return a set of classes as SpringBeans of the interface
+     */
 	private static Set<SpringBean> getSpringBeans(Class<?> interfaze) {
 		Set<SpringBean> result = new HashSet<SpringBean>();
 		BeanDefinitionRegistry beanDefinitionRegistry = new SimpleBeanDefinitionRegistry();
@@ -285,10 +333,20 @@ public class IbisDocPipe extends FixedForwardPipe {
 		return result;
 	}
 
+	/**
+	 * Add the exclude to the excludefilter of the ClassPathBeanDefinitionScanner
+	 * @param scanner -  the scanner
+	 * @param excludeFilter - the regex of the exclude
+	 */
 	private static void addExcludeFilter(ClassPathBeanDefinitionScanner scanner, String excludeFilter) {
 		scanner.addExcludeFilter(new RegexPatternTypeFilter(Pattern.compile(excludeFilter)));
 	}
 
+	/**
+	 * Return the class given its full name
+	 * @param className - the full class name
+	 * @return the class object
+	 */
 	private static Class<?> getClass(String className) {
 		try {
 			return Class.forName(className);
@@ -298,6 +356,13 @@ public class IbisDocPipe extends FixedForwardPipe {
 		}
 	}
 
+	/**
+	 * Replace the last part of the name with the group name ex : BisWrapperPipe -> BisInputWrapper
+	 * @param group - the group name it needs to be
+	 * @param beanName - the name of the IbisBean
+	 * @param nameLastPartToReplaceWithGroupName - the last part of the name
+	 * @return return the new name of the IbisBean
+	 */
 	private static String replaceNameLastPartWithGroupName(String group, String beanName,
 			String nameLastPartToReplaceWithGroupName) {
 		if (nameLastPartToReplaceWithGroupName != null && beanName.endsWith(nameLastPartToReplaceWithGroupName)) {
@@ -308,6 +373,9 @@ public class IbisDocPipe extends FixedForwardPipe {
 		}
 	}
 
+	/**
+	 * Performs the pipe
+	 */
 	public PipeRunResult doPipe(Object input, IPipeLineSession session) throws PipeRunException {
 		String uri = null;
 		ParameterList parameterList = getParameterList();
@@ -345,6 +413,11 @@ public class IbisDocPipe extends FixedForwardPipe {
 		return new PipeRunResult(getForward(), result);
 	}
 
+	/**
+	 * Returns the complete XSD schema
+	 * @return the XSD schema
+	 * @throws PipeRunException
+	 */
 	private String getSchema() throws PipeRunException {
 		XmlBuilder schema;
 		XmlBuilder element;
@@ -395,12 +468,18 @@ public class IbisDocPipe extends FixedForwardPipe {
 		Set<IbisBean> ibisBeans = getIbisBeans(groups);
 		List<IbisMethod> ibisMethods = getIbisMethods(this);
 
+		// For each IbisBean we need to add its components to the xsd schema
 		for (IbisBean ibisBean : ibisBeans) {
 			addIbisBeanToSchema(ibisBean, schema, ibisBeans, ibisMethods, groups);
 		}
 		return schema.toXML(true);
 	}
 
+	/**
+	 * Return the ibisBeans
+	 * @param groups
+	 * @return
+	 */
 	private static Set<IbisBean> getIbisBeans(Map<String, TreeSet<IbisBean>> groups) {
 		Set<IbisBean> ibisBeans = new TreeSet<IbisBean>();
 		for (String group : groups.keySet()) {
@@ -409,10 +488,12 @@ public class IbisDocPipe extends FixedForwardPipe {
 		return ibisBeans;
 	}
 
-	private static Set<IbisBean> getIbisBeans() {
-		return getIbisBeans(getGroups());
-	}
-
+	/**
+	 * Returns the methods of this pipe
+	 * @param pipe
+	 * @return
+	 * @throws PipeRunException
+	 */
 	private static List<IbisMethod> getIbisMethods(IPipe pipe) throws PipeRunException {
 		DigesterXmlHandler digesterXmlHandler = new DigesterXmlHandler();
 		try {
@@ -539,14 +620,14 @@ public class IbisDocPipe extends FixedForwardPipe {
 		Map<String, Method> beanProperties = getBeanProperties(ibisBean.getClazz());
 		String name = ibisBean.getName();
 		if (copyPropterties.containsKey(name)) {
-			for (IbisBean ibisBean2 : getIbisBeans()) {
+			for (IbisBean ibisBean2 : getIbisBeans(getGroups())) {
 				if (copyPropterties.get(name).equals(ibisBean2.getName())) {
 					beanProperties.putAll(getBeanProperties(ibisBean2.getClazz()));
 				}
 			}
 		}
 		if (beanProperties != null) {
-			Iterator<String> iterator = new TreeSet<String>(beanProperties.keySet()).iterator();
+			Iterator<String> iterator = new TreeSet<>(beanProperties.keySet()).iterator();
 			while (iterator.hasNext()) {
 				String property = (String)iterator.next();
 				boolean exclude = false;
