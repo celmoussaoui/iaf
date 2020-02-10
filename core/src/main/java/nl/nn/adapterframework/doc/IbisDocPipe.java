@@ -335,67 +335,11 @@ public class IbisDocPipe extends FixedForwardPipe {
 			contentType = "application/json";
 		} else if ("/ibisdoc".equals(uri)) {
 			result = "<html>\n"
-					+ "  <a href=\"ibisdoc/ibisdoc.html\">ibisdoc.html (deprecated)</a><br/>\n"
 					+ "  <a href=\"ibisdoc/ibisdoc.xsd\">ibisdoc.xsd</a><br/>\n"
 					+ "  <a href=\"ibisdoc/uglify_lookup.xml\">uglify_lookup.xml</a><br/>\n"
 					+ "  <a href=\"ibisdoc/ibisdoc.json\">ibisdoc.json</a><br/>\n"
-					+ "  <a href=\"../iaf/ibisdoc\">The new ibisdoc application</a><br/>\n"
+					+ "  <a href=\"../iaf/ibisdoc\">IbisDoc</a><br/>\n"
 					+ "</html>";
-		} else if ("/ibisdoc/ibisdoc.html".equals(uri)) {
-			result = "<html>\n"
-					+ "<head>\n"
-					+ "<title>Adapter elements</title>\n"
-					+ "</head>\n"
-					+ "  <frameset cols=\"200,*\">\n"
-					+ "    <frameset rows=\"300,*\">\n"
-					+ "      <frame name=\"topmenuFrame\" src=\"topmenu.html\" >\n"
-					+ "      <frame name=\"submenuFrame\" src=\"\">\n"
-					+ "    </frameset>\n"
-					+ "    <frame name=\"contentFrame\" src=\"\">\n"
-					+ "  </frameset>\n"
-					+ "  <noframes>\n"
-					+ "    <body bgcolor=\"#FFFFFF\">\n"
-					+ "      Your browser doesn't support frames!\n"
-					+ "    </body>\n"
-					+ "  </noframes>\n"
-					+ "</html>";
-		} else if (uri.endsWith(".html")) {
-			if ("/ibisdoc/topmenu.html".equals(uri)) {
-				StringBuffer topmenuHtml = new StringBuffer();
-				getMenuHtml(topmenuHtml, null, null);
-				result = topmenuHtml.toString();
-			} else if ("/ibisdoc/all.html".equals(uri)) {
-				StringBuffer allHtml = new StringBuffer();
-				getMenuHtml(null, allHtml, null);
-				result = allHtml.toString();
-			} else if ("/ibisdoc/excludes.html".equals(uri)) {
-				StringBuffer excludesHtml = new StringBuffer();
-				for (String exclude : excludeFilters) {
-					excludesHtml.append("<p> " + exclude + "</p>\n");
-				}
-				result = excludesHtml.toString();
-			} else if ("/ibisdoc/errors.html".equals(uri)) {
-				StringBuffer errorsHtml = new StringBuffer();
-				for (String key : errors.keySet()) {
-					errorsHtml.append("<p> " + key + ": " + errors.get(key) + "</p>\n");
-				}
-				result = errorsHtml.toString();
-			} else {
-				if (uri.length() > "/ibisdoc/".length() && uri.indexOf(".") != -1) {
-					Map<String, TreeSet<IbisBean>> groups = getGroups();
-					String page = uri.substring("/ibisdoc/".length(), uri.lastIndexOf("."));
-					if (groups.get(page) != null) {
-						Map<String, String> groupsHtml = new HashMap<String, String>();
-						getMenuHtml(null, null, groupsHtml);
-						result = groupsHtml.get(page);
-					} else {
-						String beanHtml = getBeanHtml(page);
-						if (beanHtml != null) {
-							result = beanHtml;
-						}
-					}
-				}
-			}
 		}
 		session.put("contentType", contentType);
 		return new PipeRunResult(getForward(), result);
@@ -755,50 +699,4 @@ public class IbisDocPipe extends FixedForwardPipe {
 		result.append("</Elements>\n");
 		return result.toString();
 	}
-
-	private static void getMenuHtml(StringBuffer topmenuHtml, StringBuffer allHtml, Map<String, String> groupsHtml) {
-		if (topmenuHtml == null) topmenuHtml = new StringBuffer();
-		if (allHtml == null)  allHtml = new StringBuffer();
-		if (groupsHtml == null) groupsHtml = new HashMap<String, String>();
-		Map<String, TreeSet<IbisBean>> groups = getGroups();
-
-		for (String group : groups.keySet()) {
-			topmenuHtml.append("<a href='" + group + ".html' target='submenuFrame'>" + group + "</a><br/>\n");
-			StringBuffer submenuHtml = new StringBuffer();
-			for (IbisBean ibisBean : groups.get(group)) {
-				submenuHtml.append("<a href='" + ibisBean.getName()
-						+ ".html' target='contentFrame'>" + ibisBean.getName() + "</a>");
-				submenuHtml.append("&nbsp;[");
-				submenuHtml.append("<a href='https://javadoc.ibissource.org/latest/"
-						+ ibisBean.getClazz().getName().replaceAll("\\.", "/") + ".html' target='contentFrame'>"
-						+ "javadoc</a>");
-				submenuHtml.append("]<br/>\n");
-			}
-			groupsHtml.put(group, submenuHtml.toString());
-			allHtml.append(submenuHtml.toString());
-		}
-		topmenuHtml.append("<a href='all.html' target='submenuFrame'>All</a><br/>\n");
-		topmenuHtml.append("<br/>\n");
-		topmenuHtml.append("<a href='excludes.html' target='contentFrame'>Excludes</a><br/>\n");
-		if (errors.size() > 0) {
-			topmenuHtml.append("<a href='errors.html' target='contentFrame'>Errors</a><br/>\n");
-		}
-	}
-
-	private static String getBeanHtml(String beanName) {
-		Map<String, TreeSet<IbisBean>> groups = getGroups();
-		for (IbisBean ibisBean : getIbisBeans()) {
-			if (beanName.equals(ibisBean.getName())) {
-				StringBuffer result = new StringBuffer();
-				result.append(beanName);
-				result.append("<table border='1'>");
-				result.append("<tr><th>class</th><th>attribute</th><th>description</th><th>default</th></tr>");
-				addPropertiesToSchemaOrHtml(ibisBean, null, result);
-				result.append("</table>");
-				return result.toString();
-			}
-		}
-		return null;
-	}
-
 }
