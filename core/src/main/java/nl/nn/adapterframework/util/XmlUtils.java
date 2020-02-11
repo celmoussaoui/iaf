@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -659,7 +658,7 @@ public class XmlUtils {
 		Document output;
 
 		try {
-			in = new InputStreamReader(url.openStream(),Misc.DEFAULT_INPUT_STREAM_ENCODING);
+			in = StreamUtil.getCharsetDetectingInputStreamReader(url.openStream());
 		} catch (IOException e) {
 			throw new DomBuilderException(e);
 		}
