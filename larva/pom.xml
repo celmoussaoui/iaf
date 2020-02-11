@@ -4,14 +4,14 @@
   <parent>
     <groupId>org.ibissource</groupId>
     <artifactId>ibis-adapterframework-parent</artifactId>
-    <version>7.3-B1-SNAPSHOT</version>
+    <version>7.5-SNAPSHOT</version>
   </parent>
 
   <artifactId>ibis-adapterframework-larva</artifactId>
   <name>Ibis AdapterFramework Larva</name>
 
   <properties>
-    <spring.version>3.2.16.RELEASE</spring.version>
+    <spring.version>4.3.25.RELEASE</spring.version>
   </properties>
 
   <dependencies>
@@ -58,6 +58,11 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
       <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 

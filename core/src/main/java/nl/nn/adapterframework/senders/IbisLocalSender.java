@@ -250,7 +250,7 @@ public class IbisLocalSender extends SenderWithParametersBase implements HasPhys
 	}
 	
 	/**
-	 * serviceName under which the JavaListener or WebServiceListener is registered.
+	 * Sets a serviceName under which the JavaListener or WebServiceListener is registered.
 	 */
 	@IbisDoc({"name of the {@link nl.nn.adapterframework.http.webservicelistener webservicelistener} that should be called", ""})
 	public void setServiceName(String serviceName) {
@@ -262,7 +262,7 @@ public class IbisLocalSender extends SenderWithParametersBase implements HasPhys
 
 
 	/**
-	 * when <code>true</code>, the call is made in a separate thread, possibly using separate transaction. 
+	 * When <code>true</code>, the call is made in a separate thread, possibly using separate transaction. 
 	 */
 	@IbisDoc({"when <code>true</code>, the call is made in a separate thread, possibly using separate transaction", "false"})
 	public void setIsolated(boolean b) {
@@ -318,6 +318,7 @@ public class IbisLocalSender extends SenderWithParametersBase implements HasPhys
 		return dependencyTimeOut;
 	}
 
+	@IbisDoc({"comma separated list of keys of session variables that should be returned to caller, for correct results as well as for erronous results. (Only for listeners that support it, like JavaListener)<br/>N.B. To get this working, the attribute returnedSessionKeys must also be set on the corresponding Receiver", ""})
 	public void setReturnedSessionKeys(String string) {
 		returnedSessionKeys = string;
 	}

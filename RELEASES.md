@@ -6,11 +6,112 @@ Ibis AdapterFramework release notes
 
 
 
-7.3-B1
+Upcoming
 --------
 
-[Commits](https://github.com/ibissource/iaf/compare/v7.2...HEAD)
+[Commits](https://github.com/ibissource/iaf/compare/v7.4...HEAD)
 [![Build Status](https://travis-ci.org/ibissource/iaf.png)](https://travis-ci.org/ibissource/iaf)
+
+- Make attribute firstPipe in PipeLine optional. When empty, the first Pipe in the Pipeline configuration
+  is considedred to be the first. Similarly the success forward defaults to the next Pipe in the PipeLine.
+- Enable to specify a namespace without a prefix in attribute namespaceDefs, to help simplify xpathExpressions e.g. into '/root/sub' instead of '/\*[local-name()='root']/\*[local-name()='sub'.
+- Make ForEachChildElementPipe optionally streaming when using elementXPathExpression too. N.B. This requires an XsltProcessor that properly supports streaming. The versions of Saxon and Xalan that we currently employ do not; 
+  Add options 'targetElement' and 'containerElement' to ForEachChildElementPipe to enable processing of very large files, avoiding memory problems that still exist with 
+  xpath expressions for very large files;
+  Make Xslt streaming default for xsltVersion=1
+- Bugfix (un)loading configs in JmxMbeanHelper
+- Add LadybugPipe
+- Show Security Items: Improve error handling for 'Used JmsRealms' and 'Used Authentication Entries'
+- Add Javascript Sender
+- Refactor SchedulerHelper
+- Refactor mediatypes in ApiListener
+- Add MultipartHttpSender
+- Add config warning when xsltVersion does not match detected version in xslt
+- Automatically wire Spring beans into the IbisApplicationContext
+- Fix header parameters being added to formand multipart-bodyparts
+- Xslt pipe dynamic stylesheet
+- Add logging and don't unload config when no database connection present
+- ForEachChildElementPipe option to keep namespaces
+- Add proxy attributes to ExchangeFolderSender
+- Introduce LdapFindGroupMembershipsPipe
+- Fix and improve (auto)reload in GUI 3.0
+- Introduce SaxException, with clear message, and proper stacktrace under IBM JDK
+- Fix stopCondition in ForEachChildElementPipe + remove count from result + introduce maxItems attribute
+- Correct log instantiating using LogUtil instead of Logger
+- Upgrade apache commons codec to the latest version
+- Add proxy functionality to the SendGridSender
+- Refactor SchedulerAdapter and remove jobs when config is unloaded
+- Fix concurrency issues when a RestListener registers on a dispatcher
+- Fix error when uploading configuration in GUI3.0
+- Fix Classloader resource retrieval
+- Create full path option for FileSystemListeners
+- Remove BasePathClassLoader and refactor IConfigurationClassLoaders
+- Add scroll to top in GUI 3.0
+- Resolve relative directories for J2V8
+- Add bounceAddress attribute on MailSender
+- Fix and Cleanup MailSender and MailSenderBase
+- Upgrade ladybug to version 2.0.9
+- Namespace support for skip empty tags
+- Base64 encode and decode option for FileSystemPipe, FileSystemSender and descendants 
+- Add option to rotate by size, number of files or number of days to FileSystemPipe, FileSystemSender and descendants
+- FileSystemSenders now return an InputStream when action=read
+- XsltSender, XsltPipe, JsonXsltSender, JsonXsltPipe accept streaming inputs
+- Add option in GUI 3.0 to cut off all traffic to Ladybug debugger, and to switch it on again
+- HttpSender, WebServiceSender and descendants no longer support attribute xmlTag
+- Add option to use username and password from authAlias in Paramter values
+- Bugfix autoReload new configuration on other nodes
+- Support XML-Schema 1.1 for XML validation
+
+
+### Non backwards compatible changes
+
+- Make DirectoryListener extend FileSystemListener. It no longer supports attributes fileList, 
+  fileListForcedAfter, outputFilenamePattern, passWithoutDirectory, numberOfBackups, overwrite and random.
+- Remove attribute 'count' from result of iterating pipes like ForEachChildElementPipe, to enable streaming output.
+- The MailSender displayName element no longer exist, please use attribute `name` on the from/to elements instead.
+- jdbc.convertFieldnamesToUppercase has been set to true by default
+- FileSystemSenders with read action no longer encode base64 by default.
+
+
+
+7.4
+--------
+
+[Commits](https://github.com/ibissource/iaf/compare/v7.3...v7.4)
+[![Build Status](https://travis-ci.org/ibissource/iaf.png?branch=v7.4)](https://travis-ci.org/ibissource/iaf)
+
+- Improve validation config warnings
+- ShowConfigurationStatus - improve error view
+- Possibility to add new domains independently of ear file
+    - UploadConfigService adapter
+    - Facility to (de)activate configs
+- Add Samba2Filesystem, used in SambaSender, SambaPipe and SambaListener
+- Fix scheduler seconds/miliseconds bug
+- Fix ability to run xslt1 xPath expressions with the xsltpipe and sender
+- SAP clear function template cache at configuration reload
+- Upgrade javassist dependency version to support java 8+
+- Make sure FlowDiagrams are rendered upon ibis startup
+- Add possibility for execute Oracle queries for H2 database
+
+
+
+7.3
+--------
+
+[Commits](https://github.com/ibissource/iaf/compare/v7.2...v7.3)
+[![Build Status](https://travis-ci.org/ibissource/iaf.png?branch=v7.3)](https://travis-ci.org/ibissource/iaf)
+
+- Refactor CmisListener to an event based listener, you can now have multiple listeners listening to different events
+- The cmis bridge functionality on the sender has been removed. In order to use the bridge you need to configure properties in the WAR/EAR file. See CmisSessionBuilder for more information about the properties that can be set
+- Several bugfixes and performance improvements
+
+
+
+7.3-RC1
+--------
+
+[Commits](https://github.com/ibissource/iaf/compare/v7.2...v7.3-RC1)
+[![Build Status](https://travis-ci.org/ibissource/iaf.png?branch=v7.3-RC1)](https://travis-ci.org/ibissource/iaf)
 
 - Generate IbisDoc and XSD and support beautiful configuration xml. The XSD can be used for code completion of beautiful Ibis configurations in Eclipse
 - Use XSLT 2.0 instead of 1.0 for configuration tweaks (e.g. stub4testtool.xsl)
@@ -19,6 +120,34 @@ Ibis AdapterFramework release notes
 - Add Google's V8 JavaScript engine
 - Use VizJs to generate flow diagrams
 - Improve 'error' handling in Show Security Items
+- Upgrade Ladybug Test Tool to version 2.0.7
+    - Make it possible to specify a transformation per report
+    - Fix selecting root node on refresh at some parts of tree of Test tab
+    - Return to previous active tab after closing tab
+    - Show Compare button after run in Test tab
+    - Display run result error (if any) on run in Test tab
+    - Fix error on selecting checkpoint with null message
+    - Fix error on selecting different stub strategy
+- Add ability to use nullvalues on cmis properties
+- Show class in IbisDoc html
+- Show FileHandler properties in IbisDoc for FilePipe
+- Add springIbisTestToolIgnoreReport.xml to ignore reports in Ladybug based on a session key
+- Change IBIS startup servlet to CXF and register it with Spring
+- Fix date issue where time properties are converted to GMT
+- Revert old CMIS WS endpoints to register each service's WSDL individually
+- Make WebServiceListener SOAP endpoint binding 1.2 capable
+- Add option to add custom views to GUI 3.0
+- Remove xslt2=true attribute, xslt version is now automatically detected. You may override this setting by specifying the xsltVersion attribute
+- Fix potential memory leaks when:
+    - NDC stacks are not cleaned up after processing messages
+    - using the hideRegex attribute on pipes/adapters
+    - consecutively processing multiple large messages in a row
+
+
+### Non backwards compatible changes
+
+- The dateformat in the CmisSender has been modified to `yyyy-MM-dd'T'HH:mm:ss.SSSZ` in order to use the old format, set the `jcmissender.processproperties.legacydateformat` property to true
+- **Upgrade minimum require Java version from 6 to 7**. Java sources are still Java 1.6 compatible at this stage.
 
 
 
@@ -30,7 +159,7 @@ Ibis AdapterFramework release notes
 
 - Fix NPE in BatchFileTransformerPipe when using an IbisLocalSender
 - Various bugfixes en performance improvements in SOAPProviders (WebServiceListener)
-- Update to latest Ladybug Test Tool version
+- Upgrade Ladybug Test Tool to version 2.0.6
     - Prevent error on reselect node after Delete and Replace
     - Refresh after upload
     - Limit the use of special chars in normalized path

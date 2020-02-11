@@ -18,8 +18,13 @@ package nl.nn.adapterframework.core;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.transaction.TransactionDefinition;
 
 import nl.nn.adapterframework.cache.ICacheAdapter;
 import nl.nn.adapterframework.cache.ICacheEnabled;
@@ -28,8 +33,8 @@ import nl.nn.adapterframework.configuration.ConfigurationWarnings;
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.extensions.esb.EsbSoapWrapperPipe;
 import nl.nn.adapterframework.jms.JmsException;
-import nl.nn.adapterframework.pipes.FixedForwardPipe;
 import nl.nn.adapterframework.pipes.AbstractPipe;
+import nl.nn.adapterframework.pipes.FixedForwardPipe;
 import nl.nn.adapterframework.pipes.MessageSendingPipe;
 import nl.nn.adapterframework.processors.PipeLineProcessor;
 import nl.nn.adapterframework.receivers.ReceiverBase;
@@ -42,10 +47,6 @@ import nl.nn.adapterframework.util.Locker;
 import nl.nn.adapterframework.util.LogUtil;
 import nl.nn.adapterframework.util.Misc;
 import nl.nn.adapterframework.util.SpringTxManagerProxy;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.springframework.transaction.TransactionDefinition;
 
 /**
  * Processor and keeper of a line of {@link IPipe Pipes}.
@@ -133,7 +134,7 @@ public class PipeLine implements ICacheEnabled, HasStatistics {
 
 	private TransactionDefinition txDef = null;
 
-    private Map<String, IPipe> pipesByName = new Hashtable<String, IPipe>(); // needless synchronization?
+    private Map<String, IPipe> pipesByName = new LinkedHashMap<String, IPipe>();
     private List<IPipe> pipes              = new ArrayList<IPipe>();
     // set of exits paths with their state
     private Map<String, PipeLineExit> pipeLineExits = new Hashtable<String, PipeLineExit>();
@@ -262,8 +263,11 @@ public class PipeLine implements ICacheEnabled, HasStatistics {
 	    if (pipeLineExits.size() < 1) {
 		    throw new ConfigurationException("no PipeLine Exits specified");
 	    }
+	    if (pipes.isEmpty()) {
+		    throw new ConfigurationException("no Pipes in PipeLine");
+	    }
 	    if (this.firstPipe == null) {
-		    throw new ConfigurationException("no firstPipe defined");
+		    firstPipe=pipes.get(0).getName();
 	    }
 	    if (getPipe(firstPipe) == null) {
 		    throw new ConfigurationException("no pipe found for firstPipe [" + firstPipe + "]");
@@ -695,7 +699,27 @@ public class PipeLine implements ICacheEnabled, HasStatistics {
 		return commitOnState;
 	}
 
-
+	@IbisDoc({"The <code>transactionAttribute</code> declares transactional behavior of pipeline execution. It "
+		+ "applies both to database transactions and XA transactions."
+        + "The pipeline uses this to start a new transaction or suspend the current one when required. "
+		+ "For developers: it is equal"
+        + "to <a href=\"http://java.sun.com/j2ee/sdk_1.2.1/techdocs/guides/ejb/html/Transaction2.html#10494\">EJB transaction attribute</a>. "
+        + "Possible values for transactionAttribute:"
+        + "  <table border=\"1\">"
+        + "    <tr><th>transactionAttribute</th><th>callers Transaction</th><th>Pipeline excecuted in Transaction</th></tr>"
+        + "    <tr><td colspan=\"1\" rowspan=\"2\">Required</td>    <td>none</td><td>T2</td></tr>"
+        + "											      <tr><td>T1</td>  <td>T1</td></tr>"
+        + "    <tr><td colspan=\"1\" rowspan=\"2\">RequiresNew</td> <td>none</td><td>T2</td></tr>"
+        + "											      <tr><td>T1</td>  <td>T2</td></tr>"
+        + "    <tr><td colspan=\"1\" rowspan=\"2\">Mandatory</td>   <td>none</td><td>error</td></tr>"
+        + "											      <tr><td>T1</td>  <td>T1</td></tr>"
+        + "    <tr><td colspan=\"1\" rowspan=\"2\">NotSupported</td><td>none</td><td>none</td></tr>"
+        + "											      <tr><td>T1</td>  <td>none</td></tr>"
+        + "    <tr><td colspan=\"1\" rowspan=\"2\">Supports</td>    <td>none</td><td>none</td></tr>"
+        + " 										      <tr><td>T1</td>  <td>T1</td></tr>"
+        + "    <tr><td colspan=\"1\" rowspan=\"2\">Never</td>       <td>none</td><td>none</td></tr>"
+        + "											      <tr><td>T1</td>  <td>error</td></tr>"
+        + "  </table>", "Supports"})
 	public void setTransactionAttribute(String attribute) throws ConfigurationException {
 		transactionAttribute = JtaUtil.getTransactionAttributeNum(attribute);
 		if (transactionAttribute<0) {
@@ -706,6 +730,16 @@ public class PipeLine implements ICacheEnabled, HasStatistics {
 		return JtaUtil.getTransactionAttributeString(transactionAttribute);
 	}
 
+    @IbisDoc({"Like <code>transactionAttribute</code>, but the chosen "
+	    + "option is represented with a number. The numbers mean:"
+	    + "<table>"
+	    + "<tr><td>0</td><td>Required</td></tr>"
+	    + "<tr><td>1</td><td>Supports</td></tr>"
+	    + "<tr><td>2</td><td>Mandatory</td></tr>"
+	    + "<tr><td>3</td><td>RequiresNew</td></tr>"
+	    + "<tr><td>4</td><td>NotSupported</td></tr>"
+	    + "<tr><td>5</td><td>Never</td></tr>"
+	    + "</table>", "1"})
 	public void setTransactionAttributeNum(int i) {
 		transactionAttribute = i;
 	}
@@ -748,7 +782,7 @@ public class PipeLine implements ICacheEnabled, HasStatistics {
 		return outputWrapper;
 	}
 
-	@IbisDoc({"timeout (in seconds) of transaction started to process a message.", "<code>0</code> (use system default)</code>"})
+	@IbisDoc({"timeout (in seconds) of transaction started to process a message.", "<code>0</code> (use system default)"})
 	public void setTransactionTimeout(int i) {
 		transactionTimeout = i;
 	}

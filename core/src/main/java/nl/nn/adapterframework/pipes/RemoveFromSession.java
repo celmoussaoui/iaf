@@ -1,5 +1,5 @@
 /*
-   Copyright 2013 Nationale-Nederlanden
+   Copyright 2013,2019 Nationale-Nederlanden
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,13 +29,6 @@ import org.apache.commons.lang.StringUtils;
  * Removes a key specified by <code>{@link #setSessionKey(String) sessionKey}</code>
  * from the {@link IPipeLineSession pipeLineSession}.
  *
- * <p><b>Exits:</b>
- * <table border="1">
- * <tr><th>state</th><th>condition</th></tr>
- * <tr><td>"success"</td><td>default</td></tr>
- * <tr><td><i>{@link #setForwardName(String) forwardName}</i></td><td>if specified</td></tr>
- * </table>
- * </p>
  * @author Peter Leeuwenburgh
  *
  * @see IPipeLineSession
@@ -49,8 +42,7 @@ import org.apache.commons.lang.StringUtils;
 	}
     
 	/**
-     * checks wether the proper forward is defined.
-     * @throws ConfigurationException
+     * Checks whether the proper forward is defined.
      */
     public void configure() throws ConfigurationException {
 	    super.configure();
@@ -62,11 +54,8 @@ import org.apache.commons.lang.StringUtils;
         }
 	*/
     }
-/**
- * This is where the action takes place. Pipes may only throw a PipeRunException,
- * to be handled by the caller of this object.
- */
-public PipeRunResult doPipe(Object input, IPipeLineSession session) throws PipeRunException {
+	 
+  public PipeRunResult doPipe(Object input, IPipeLineSession session) throws PipeRunException {
 	String result = null;
 
 	String sessionKeys = getSessionKey();
@@ -94,24 +83,16 @@ public PipeRunResult doPipe(Object input, IPipeLineSession session) throws PipeR
 			}
 		}
 	}
-	
+
 	return new PipeRunResult(getForward(), result);
-}
-/**
- * The name of the key in the <code>PipeLineSession</code> to store the input in
- * {@link IPipeLineSession pipeLineSession}
- */
-public String getSessionKey() {
-	return sessionKey;
-}
-/**
- * The name of the key in the <code>PipeLineSession</code> to store the input in
- * @see IPipeLineSession
- * 
- * @param newSessionKey String
- */
-	@IbisDoc({"name of the key in the <code>pipelinesession</code> to remove. if this key is empty the input message is interpretted as key. for multiple keys use ',' as delimiter", ""})
-public void setSessionKey(String newSessionKey) {
-	sessionKey = newSessionKey;
-}
+  }
+
+	 
+	@IbisDoc({"name of the key of the entry in the <code>pipelinesession</code> to remove. if this key is empty the input message is interpretted as key. for multiple keys use ',' as delimiter", ""})
+	public void setSessionKey(String newSessionKey) {
+		sessionKey = newSessionKey;
+	}
+	public String getSessionKey() {
+		return sessionKey;
+	}
 }

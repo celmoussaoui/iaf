@@ -1,5 +1,5 @@
 /*
-   Copyright 2016, 2018 Nationale-Nederlanden
+   Copyright 2016, 2018-2020 Nationale-Nederlanden
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,54 +15,32 @@
 */
 package nl.nn.adapterframework.configuration.classloaders;
 
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Map;
 import nl.nn.adapterframework.configuration.ConfigurationException;
-import nl.nn.adapterframework.util.Misc;
 
-public class JarFileClassLoader extends BytesClassLoader {
+public class JarFileClassLoader extends JarBytesClassLoader {
 	private String jarFileName;
-	private String configurationName;
 
-	public JarFileClassLoader(String jarFileName, String configurationName) throws ConfigurationException {
-		this(jarFileName, configurationName, JarFileClassLoader.class.getClassLoader());
-	}
-
-	public JarFileClassLoader(String jarFileName, String configurationName, ClassLoader parent) throws ConfigurationException {
+	public JarFileClassLoader(ClassLoader parent) {
 		super(parent);
-		this.jarFileName = jarFileName;
-		this.configurationName = configurationName;
-		reload();
 	}
 
 	@Override
-	public void reload() throws ConfigurationException {
-		super.reload();
-		JarFile jarFile = null;
+	protected Map<String, byte[]> loadResources() throws ConfigurationException {
+		if(jarFileName == null)
+			throw new ConfigurationException("jar file not set");
+
 		try {
-			jarFile = new JarFile(jarFileName);
-			Enumeration<JarEntry> enumeration = jarFile.entries();
-			while (enumeration.hasMoreElements()) {
-				JarEntry jarEntry = enumeration.nextElement();
-				resources.put(jarEntry.getName(), Misc.streamToBytes(jarFile.getInputStream(jarEntry)));
-			}
-		} catch (IOException e) {
-			throw new ConfigurationException(
-					"Could not read resources from jar '" + jarFileName
-					+ "' for configuration '" + configurationName + "'");
-		} finally {
-			if (jarFile != null) {
-				try {
-					jarFile.close();
-				} catch (IOException e) {
-					log.warn("Could not close jar '" + jarFileName
-							+ "' for configuration '" + configurationName + "'", e);
-				}
-			}
+			FileInputStream jarFile = new FileInputStream(jarFileName);
+			return readResources(jarFile);
+		} catch (FileNotFoundException fnfe) {
+			throw new ConfigurationException("jar file not found");
 		}
 	}
 
+	public void setJar(String jar) {
+		this.jarFileName = jar;
+	}
 }

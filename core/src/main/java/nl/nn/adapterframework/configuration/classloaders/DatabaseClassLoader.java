@@ -1,5 +1,5 @@
 /*
-   Copyright 2016 - 2017 Nationale-Nederlanden
+   Copyright 2016 - 2019 Nationale-Nederlanden
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,37 +19,37 @@ import java.util.Map;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.configuration.ConfigurationUtils;
-import nl.nn.adapterframework.configuration.IbisContext;
 
 public class DatabaseClassLoader extends JarBytesClassLoader {
 
-	private IbisContext ibisContext;
-	private String configurationName;
 	private Map<String, Object> configuration;
 
-	public DatabaseClassLoader(IbisContext ibisContext, String configurationName) throws ConfigurationException {
-		this(ibisContext, configurationName, DatabaseClassLoader.class.getClassLoader());
+	public DatabaseClassLoader(ClassLoader parent) {
+		super(parent);
 	}
 
-	public DatabaseClassLoader(IbisContext ibisContext, String configurationName, ClassLoader parent) throws ConfigurationException {
-		super(parent);
-		this.ibisContext = ibisContext;
-		this.configurationName = configurationName;
-		reload();
+	private String getErrorMessage() {
+		return "Could not get config '" + getConfigurationName() + "' from database" + (configuration != null ? ", ignoring reload" : "");
 	}
 
 	@Override
-	public void reload() throws ConfigurationException {
-		super.reload();
+	protected Map<String, byte[]> loadResources() throws ConfigurationException {
 		Map<String, Object> configuration = null;
-		configuration = ConfigurationUtils.getConfigFromDatabase(ibisContext, configurationName, null);
+		try { //Make sure there's a database present
+			configuration = ConfigurationUtils.getConfigFromDatabase(getIbisContext(), getConfigurationName(), null);
+		}
+		catch (Throwable t) {
+			//Make the error a little bit more IBIS-developer intuitive
+			throw new ConfigurationException(getErrorMessage(), t);
+		}
+
 		if (configuration == null) {
-			throw new ConfigurationException("Could not get config '" + configurationName + "' from database");
+			throw new ConfigurationException(getErrorMessage());
 		} else {
 			byte[] jarBytes = (byte[]) configuration.get("CONFIG");
 			configuration.remove("CONFIG");
 			this.configuration = configuration;
-			readResources(jarBytes, configurationName);
+			return readResources(jarBytes);
 		}
 	}
 

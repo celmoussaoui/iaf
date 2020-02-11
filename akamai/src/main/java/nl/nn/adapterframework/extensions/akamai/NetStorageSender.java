@@ -1,5 +1,5 @@
 /*
-   Copyright 2017 - 2018 Nationale-Nederlanden
+   Copyright 2017-2019 Nationale-Nederlanden
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import nl.nn.adapterframework.core.HasPhysicalDestination;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.SenderException;
 import nl.nn.adapterframework.core.TimeOutException;
+import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.extensions.akamai.NetStorageCmsSigner.SignType;
 import nl.nn.adapterframework.http.HttpResponseHandler;
 import nl.nn.adapterframework.http.HttpSenderBase;
@@ -58,38 +59,20 @@ import nl.nn.adapterframework.util.XmlUtils;
 
 /**
  * Sender for Akamai NetStorage (HTTP based).
- * 
- * <p><b>Configuration:</b>
- * <table border="1">
- * <tr><th>attributes</th><th>description</th><th>default</th></tr>
- * <tr><td>{@link #setAction(String) action}</td><td>possible values: delete, dir, download, du, mkdir, mtime, rename, rmdir, upload</td><td>&nbsp;</td></tr>
- * <tr><td>{@link #setActionVersion(int) actionVersion}</td><td>Akamai currently only supports action version 1!</td><td>1</td></tr>
- * 
- * <tr><td>{@link #setCpCode(String) cpCode}</td><td>the CP Code to be used</td><td>&nbsp;</td></tr>
- * <tr><td>{@link #setRootDir(String) rootDir}</td><td><i>optional</i> root directory</td><td>&nbsp;</td></tr>
- * <tr><td>{@link #setUrl(String) url}</td><td>The destination, aka Akamai host. Only the hostname is allowed; eq. xyz-nsu.akamaihd.net</td><td>&nbsp;</td></tr>
- * <tr><td>{@link #setSignVersion(int) signVersion}</td><td>the version used to sign the authentication headers. Possible values: 3 (MD5), 4 (SHA1), 5 (SHA256)</td><td>5</td></tr>
- * <tr><td>{@link #setHashAlgorithm(String) hashAlgorithm}</td><td>only works in combination with the <code>upload</code> action. If set, and not specified as parameter, the sender will sign the file to be uploaded. Possible values: md5, sha1, sha256. <br/>NOTE: if the file input is a Stream this will put the file in memory!</td><td>&nbsp;</td></tr>
- * 
- * <tr><td>{@link #setNonce(String) nonce}</td><td>the nonce or api username</td><td>&nbsp;</td></tr>
- * <tr><td>{@link #setAccessToken(String) accessToken}</td><td>the api accesstoken</td><td>&nbsp;</td></tr>
- * <tr><td>{@link #setAuthAlias(String) authAlias}</td><td>alias used to obtain credentials for nonce (username) and accesstoken (password)</td><td>&nbsp;</td></tr>
- * 
- * </table>
- * </p>
+ *
  * <p>See {@link nl.nn.adapterframework.http.HttpSenderBase} for more arguments and parameters!</p>
- * 
+ *
  * <p><b>Parameters:</b></p>
  * <p>Some actions require specific parameters to be set. Optional parameters for the <code>upload</code> action are: md5, sha1, sha256 and mtime.</p>
- * 
+ *
  * <p><b>AuthAlias: (WebSphere based application servers)</b></p>
  * <p>If you do not want to specify the nonce and the accesstoken used to authenticate with Akamai, you can use the authalias property. The username represents the nonce and the password the accesstoken.</p>
- * 
+ *
  * <br/>
  * <br/>
  * <br/>
- *  
- * 
+ *
+ *
  * @author	Niels Meijer
  * @since	7.0-B4
  */
@@ -111,6 +94,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	private String accessToken = null;
 	private CredentialFactory accessTokenCf = null;
 
+	@Override
 	public void configure() throws ConfigurationException {
 		super.configure();
 
@@ -148,7 +132,6 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	 * path never ends with a slash '/'.
 	 * @param path to append to the root
 	 * @return full path to use as endpoint
-	 * @throws SenderException
 	 */
 	private URIBuilder buildUri(String path) throws SenderException {
 		if (!path.startsWith("/")) path = "/" + path;
@@ -169,17 +152,18 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 		}
 	}
 
-	public String sendMessageWithTimeoutGuarded(String correlationID, String path, ParameterResolutionContext prc) throws SenderException, TimeOutException {
+	@Override
+	public String sendMessage(String correlationID, String path, ParameterResolutionContext prc) throws SenderException, TimeOutException {
 
 		//The input of this sender is the path where to send or retrieve info from.
-		staticUri = buildUri(path);
+		staticUri = buildUri(path); // TODO: this is not thread safe!
 
 		//We don't need to send any message to the HttpSenderBase
-		return super.sendMessageWithTimeoutGuarded(correlationID, "", prc);
+		return super.sendMessage(correlationID, "", prc);
 	}
 
 	@Override
-	public HttpRequestBase getMethod(URIBuilder uri, String message, ParameterValueList parameters, Map<String, String> headersParamsMap, IPipeLineSession session) throws SenderException {
+	public HttpRequestBase getMethod(URIBuilder uri, String message, ParameterValueList parameters, IPipeLineSession session) throws SenderException {
 
 		NetStorageAction netStorageAction = new NetStorageAction(getAction());
 		netStorageAction.setVersion(actionVersion);
@@ -202,7 +186,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 
 			if (getMethodType().equals("GET")) {
 				if (parameters!=null) {
-					queryParametersAppended = appendParameters(queryParametersAppended,path,parameters,headersParamsMap);
+					queryParametersAppended = appendParameters(queryParametersAppended,path,parameters);
 					log.debug(getLogPrefix()+"path after appending of parameters ["+path.toString()+"]");
 				}
 				HttpGet method = new HttpGet(uri.build());
@@ -266,19 +250,18 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 		} else {
 			if (statusCode==HttpServletResponse.SC_OK) {
 				ok = true;
-			} else {
-				if (isIgnoreRedirects()) {
-					if (statusCode==HttpServletResponse.SC_MOVED_PERMANENTLY || statusCode==HttpServletResponse.SC_MOVED_TEMPORARILY || statusCode==HttpServletResponse.SC_TEMPORARY_REDIRECT) {
-						ok = true;
-					}
-				}
+			} else if (isFollowRedirects() && 
+					statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY || 
+					statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY || 
+					statusCode == HttpServletResponse.SC_TEMPORARY_REDIRECT) {
+				ok = true;
 			}
 		}
 
 		if (!ok) {
 			throw new SenderException(getLogPrefix() + "httpstatus "
-				+ statusCode + ": " + responseHandler.getStatusLine().getReasonPhrase()
-				+ " body: " + getResponseBodyAsString(responseHandler));
+					+ statusCode + ": " + responseHandler.getStatusLine().getReasonPhrase()
+					+ " body: " + getResponseBodyAsString(responseHandler));
 		}
 
 		XmlBuilder result = new XmlBuilder("result");
@@ -320,7 +303,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 				result.addSubElement(message);
 
 				log.warn(String.format("Unexpected Response from Server: %d %s\n%s",
-					statusCode, responseString, responseHandler.getHeaderFields()));
+						statusCode, responseString, responseHandler.getHeaderFields()));
 			}
 		}
 
@@ -346,16 +329,18 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	 * NOTE: if the file input is a Stream this will put the file in memory!
 	 * @param hashAlgorithm supports 3 types; md5, sha1, sha256
 	 */
+	@IbisDoc({"only works in combination with the <code>upload</code> action. if set, and not specified as parameter, the sender will sign the file to be uploaded. possible values: md5, sha1, sha256. <br/>note: if the file input is a stream this will put the file in memory!", ""})
 	public void setHashAlgorithm(String hashAlgorithm) {
 		this.hashAlgorithm = hashAlgorithm.toUpperCase();
 	}
 
 	/**
 	 * NetStorage action to be used
-	 * @param action delete, dir, download, du, mkdir, mtime, rename, 
+	 * @param action delete, dir, download, du, mkdir, mtime, rename,
 	 * rmdir, upload
 	 * @IbisDoc.required
 	 */
+	@IbisDoc({"possible values: delete, dir, download, du, mkdir, mtime, rename, rmdir, upload", ""})
 	public void setAction(String action) {
 		this.action = action.toLowerCase();
 	}
@@ -369,6 +354,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	 * @param actionVersion
 	 * @IbisDoc.default 1
 	 */
+	@IbisDoc({"akamai currently only supports action version 1!", "1"})
 	public void setActionVersion(int actionVersion) {
 		this.actionVersion = actionVersion;
 	}
@@ -378,6 +364,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	 * @param cpCode of the storage group
 	 * @IbisDoc.optional
 	 */
+	@IbisDoc({"the cp code to be used", ""})
 	public void setCpCode(String cpCode) {
 		this.cpCode = cpCode;
 	}
@@ -390,12 +377,14 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	 * @param url the base URL for NetStorage (without CpCode)
 	 * @IbisDoc.required
 	 */
+	@IbisDoc({"the destination, aka akamai host. only the hostname is allowed; eq. xyz-nsu.akamaihd.net", ""})
 	@Override
 	public void setUrl(String url) {
 		if(!url.endsWith("/")) url += "/";
 		this.url = url;
 	}
 
+	@Override
 	public String getUrl() {
 		return url;
 	}
@@ -404,6 +393,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	 * Login is done via a Nonce and AccessToken
 	 * @param nonce to use when logging in
 	 */
+	@IbisDoc({"the nonce or api username", ""})
 	public void setNonce(String nonce) {
 		this.nonce = nonce;
 	}
@@ -417,6 +407,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	 * @param signVersion supports 3 types; 3:MD5, 4:SHA1, 5: SHA256
 	 * @IbisDoc.default 5 (SHA256)
 	 */
+	@IbisDoc({"the version used to sign the authentication headers. possible values: 3 (md5), 4 (sha1), 5 (sha256)", "5"})
 	public void setSignVersion(int signVersion) {
 		this.signVersion = signVersion;
 	}
@@ -437,6 +428,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	 * Login is done via a Nonce and AccessToken
 	 * @param accessToken to use when logging in
 	 */
+	@IbisDoc({"the api accesstoken", ""})
 	public void setAccessToken(String accessToken) {
 		this.accessToken = accessToken;
 	}
@@ -445,6 +437,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 		return accessToken;
 	}
 
+	@Override
 	public String getPhysicalDestinationName() {
 		return "URL ["+getUrl()+"] cpCode ["+getCpCode()+"] action ["+getAction()+"]";
 	}
@@ -457,6 +450,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	 * @param rootDir
 	 * @IbisDoc.optional
 	 */
+	@IbisDoc({"<i>optional</i> root directory", ""})
 	public void setRootDir(String rootDir) {
 		if(!rootDir.startsWith("/")) rootDir = "/" + rootDir;
 		if(rootDir.endsWith("/"))
@@ -471,6 +465,7 @@ public class NetStorageSender extends HttpSenderBase implements HasPhysicalDesti
 	/**
 	 * @param authAlias to contain the Nonce (username) and AccessToken (password)
 	 */
+	@IbisDoc({"alias used to obtain credentials for nonce (username) and accesstoken (password)", ""})
 	@Override
 	public void setAuthAlias(String authAlias) {
 		this.authAlias = authAlias;

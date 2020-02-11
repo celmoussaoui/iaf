@@ -40,20 +40,45 @@ $(document).ready(function () {
 			fix_height_func();
 		}, time);
 	}
+
+	window.addEventListener("keydown", function(e) {
+		if(e.which == 70 && (e.ctrlKey || e.metaKey)) {
+			var searchbar = document.getElementById("searchbar");
+			if(searchbar) {
+				e.preventDefault();
+				searchbar.getElementsByTagName("input")[0].focus();
+			}
+		}
+	});
 });
 
 //Foist: To force upon or impose fraudulently or unjustifiably
 function foist(callback) {
 	angular.element(document.body).scope().foist(callback);
 }
+//Changes the log level to; 0 - error, 1 - warn, 2 - info, 3 - debug
+function setLogLevel(level) {
+	angular.element(document.body).scope().setLogLevel(level);
+}
 
 // Automatically minimalize menu when screen is less than 768px
 $(function() {
 	$(window).on("load resize", function() {
 		if ($(document).width() < 769) {
-			$('body').addClass('body-small');
+			$("body").addClass("body-small");
 		} else {
-			$('body').removeClass('body-small');
+			$("body").removeClass("body-small");
+		}
+	});
+
+	$(window).on("scroll", function() {
+		var scroll2top = $(".scroll-to-top").stop(true);
+		if($(this).scrollTop() > 100) {
+			if(parseInt(scroll2top.css("opacity")) === 0) {
+				scroll2top.animate({"opacity": 1, "bottom": 24}, 50, "linear");
+			}
+		} else {
+			scroll2top.animate({"opacity": 0, "bottom": 0}, 50, "linear");
 		}
 	});
 });

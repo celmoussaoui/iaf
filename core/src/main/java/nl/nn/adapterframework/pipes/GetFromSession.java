@@ -18,12 +18,12 @@ package nl.nn.adapterframework.pipes;
 import java.util.Iterator;
 import java.util.Map;
 
-import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang3.StringUtils;
 
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.util.XmlBuilder;
 
@@ -31,13 +31,6 @@ import nl.nn.adapterframework.util.XmlBuilder;
  * Gets the contents of the {@link IPipeLineSession pipeLineSession} by a key specified by
  * <code>{@link #setSessionKey(String) sessionKey}</code>.
  *
- * <p><b>Exits:</b>
- * <table border="1">
- * <tr><th>state</th><th>condition</th></tr>
- * <tr><td>"success"</td><td>default</td></tr>
- * <tr><td><i>{@link #setForwardName(String) forwardName}</i></td><td>if specified</td></tr>
- * </table>
- * </p>
  * @author Johan Verrips
  *
  * @see IPipeLineSession
@@ -48,10 +41,7 @@ public class GetFromSession  extends FixedForwardPipe {
 	private String sessionKey;
 	private String type = null;
 
-	/**
-	 * This is where the action takes place. Pipes may only throw a PipeRunException,
-	 * to be handled by the caller of this object.
-	 */
+	@Override
 	public PipeRunResult doPipe(Object input, IPipeLineSession session) throws PipeRunException {
 		String key = getSessionKey();
 		if(StringUtils.isEmpty(key))
@@ -83,29 +73,28 @@ public class GetFromSession  extends FixedForwardPipe {
 	}
 
 	/**
-	 * The name of the key in the {@link IPipeLineSession pipeLineSession} to retrieve the input from
-	 * @return name of the key
+	 * Returns the name of the key in the {@link IPipeLineSession pipeLineSession} to retrieve the input from
 	 */
 	public String getSessionKey() {
 		return sessionKey;
 	}
 
 	/**
-	 * The name of the key in the <code>PipeLineSession</code> to store the input in
+	 * Sets the name of the key in the <code>PipeLineSession</code> to store the input in
 	 * @see IPipeLineSession
-	 * 
-	 * @param sessionKey String
 	 */
-	@IbisDoc({"name of the key in the <code>pipelinesession</code> to retrieve the output message from", ""})
+	@IbisDoc({"1", "Key of the session variable to retrieve the output message from. When left unspecified, the input message is used as the key of the session variable", ""})
 	public void setSessionKey(String sessionKey) {
 		this.sessionKey = sessionKey;
 	}
 
+	@IbisDoc({"2", "<ul><li><code>string</code>: renders the contents</li><li><code>map</code>: converts a Map&lt;String, String&gt; object to a xml-string (&lt;items&gt;&lt;item name='...'&gt;...&lt;/item&gt;&lt;item name='...'&gt;...&lt;/item&gt;&lt;/items&gt;)</li></ul>", "string"})
+	public void setType(String type) {
+		this.type = type;
+	}
 	public String getType() {
 		return type;
 	}
 
-	public void setType(String type) {
-		this.type = type;
-	}
+
 }

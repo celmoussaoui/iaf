@@ -1,5 +1,5 @@
 /*
-Copyright 2016-2017 Integration Partners B.V.
+Copyright 2016-2017, 2019 Integration Partners B.V.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,12 +25,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.annotation.security.RolesAllowed;
-import javax.servlet.ServletConfig;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -53,16 +51,12 @@ import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 @Path("/")
 public final class SendJmsMessage extends Base {
 
-	@Context ServletConfig servletConfig;
-
 	@POST
 	@RolesAllowed({"IbisDataAdmin", "IbisAdmin", "IbisTester"})
 	@Path("jms/message")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response putJmsMessage(MultipartFormDataInput input) throws ApiException {
-
-		initBase(servletConfig);
 
 		String jmsRealm = null, destinationName = null, destinationType = null, replyTo = null, message = null, fileName = null;
 		InputStream file = null;
@@ -97,7 +91,7 @@ public final class SendJmsMessage extends Base {
 				file = inputDataMap.get("file").get(0).getBody(InputStream.class, null);
 		}
 		catch (IOException e) {
-			throw new ApiException("Failed to parse one or more parameters!");
+			throw new ApiException("Failed to parse one or more parameters", e);
 		}
 
 		try {
@@ -124,7 +118,7 @@ public final class SendJmsMessage extends Base {
 			}
 		}
 		catch (Exception e) {
-			throw new ApiException("Failed to read message: " + e.getMessage());
+			throw new ApiException("Failed to read message", e);
 		}
 
 		if(message != null && message.length() > 0) {
@@ -179,7 +173,7 @@ public final class SendJmsMessage extends Base {
 		}
 		archive.close();
 	}
-	
+
 	private void processMessage(JmsSender qms, String messageId, String message) throws ApiException {
 		Map<String, String> ibisContexts = XmlUtils.getIbisContext(message);
 		String technicalCorrelationId = messageId;
@@ -204,12 +198,12 @@ public final class SendJmsMessage extends Base {
 			qms.open();
 			qms.sendMessage(technicalCorrelationId, message);
 		} catch (Exception e) {
-			throw new ApiException("Error occured sending message: " + e.getMessage());
+			throw new ApiException("Error occured sending message", e);
 		} 
 		try {
 			qms.close();
 		} catch (Exception e) {
-			throw new ApiException("Error occured on closing connection: " + e.getMessage());
+			throw new ApiException("Error occured on closing connection", e);
 		}
 	}
 }

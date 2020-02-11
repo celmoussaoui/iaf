@@ -23,7 +23,7 @@ public class ApiCacheManager {
 	private static AppConstants appConstants = AppConstants.getInstance();
 	private static String etagCacheType = appConstants.getProperty("etag.cache.type", "ehcache");
 	private static String instanceName = appConstants.getResolvedProperty("instance.name");
-	private static String otapStage = appConstants.getResolvedProperty("otap.stage");
+	private static String dtapStage = appConstants.getResolvedProperty("dtap.stage");
 
 	/**
 	 * Get the etagCache, defaults to EhCache when no type has been specified.
@@ -43,10 +43,10 @@ public class ApiCacheManager {
 
 	/**
 	 * Creates an IBIS independent cachePrefix so multiple IBIS can connect to the same cache
-	 * @return cachePrefix 'instanceName_otapStage_'
+	 * @return cachePrefix 'instanceName_dtapStage_'
 	 */
 	public static String buildCacheKey(String uriPattern) {
-		return instanceName + "_" + otapStage.toUpperCase() + "_" + uriPattern;
+		return instanceName + "_" + dtapStage.toUpperCase() + "_" + uriPattern;
 	}
 
 	public static String buildEtag(String uriPattern, int hash) {
@@ -55,8 +55,9 @@ public class ApiCacheManager {
 
 	public static String getParentCacheKey(ApiListener listener, String uri) {
 		String method = listener.getMethod();
+		String pattern = listener.getCleanPattern();
 		// Not only remove the eTag for the selected resources but also the collection
-		if((method.equals("PUT") || method.equals("DELETE")) && listener.getCleanPattern().endsWith("/*")) {
+		if((method.equals("PUT") || method.equals("DELETE")) && pattern != null && pattern.endsWith("/*")) {
 			//Check the amount of asterisks, if there is only 1, this will return false
 			if(listener.getCleanPattern().indexOf("*") < listener.getCleanPattern().lastIndexOf("*")) {
 				//Get collection uri

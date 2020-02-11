@@ -38,6 +38,7 @@ import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.rmi.server.UID;
 import java.text.DecimalFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -57,10 +58,11 @@ import javax.xml.transform.TransformerException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.log4j.Logger;
+import org.xml.sax.SAXException;
 
 
 /**
- * Miscellanous conversion functions.
+ * Miscellaneous conversion functions.
  */
 public class Misc {
 	static Logger log = LogUtil.getLogger(Misc.class);
@@ -184,20 +186,9 @@ public class Misc {
 		}
 	}
 
-	public static void streamToFile(InputStream inputStream, File file)
-			throws IOException {
-		OutputStream fileOut = null;
-		try {
-			fileOut = new FileOutputStream(file);
+	public static void streamToFile(InputStream inputStream, File file) throws IOException {
+		try (OutputStream fileOut = new FileOutputStream(file)) {
 			Misc.streamToStream(inputStream, fileOut);
-		} finally {
-			try {
-				if (fileOut != null) {
-					fileOut.close();
-				}
-			} catch (IOException e) {
-				log.warn("exception closing outputstream", e);
-			}
 		}
 	}
 
@@ -221,13 +212,16 @@ public class Misc {
 	}
 	public static void readerToWriter(Reader reader, Writer writer, boolean closeInput) throws IOException {
 		if (reader!=null) {
-			char[] buffer=new char[BUFFERSIZE];
-			int charsRead;
-			while ((charsRead=reader.read(buffer,0,BUFFERSIZE))>-1) {
-				writer.write(buffer,0,charsRead);
-			}
-			if (closeInput) {
-				reader.close();
+			try {
+				char[] buffer=new char[BUFFERSIZE];
+				int charsRead;
+				while ((charsRead=reader.read(buffer,0,BUFFERSIZE))>-1) {
+					writer.write(buffer,0,charsRead);
+				}
+			} finally {
+				if (closeInput) {
+					reader.close();
+				}
 			}
 		}
 	}
@@ -248,12 +242,8 @@ public class Misc {
 	  * Please consider using resourceToString() instead of relying on files.
 	 */
 	public static String fileToString(String fileName, String endOfLineString, boolean xmlEncode) throws IOException {
-		FileReader reader = new FileReader(fileName);
-		try {
+		try (FileReader reader = new FileReader(fileName)) {
 			return readerToString(reader, endOfLineString, xmlEncode);
-		}
-		finally {
-			reader.close();
 		}
 	}
 
@@ -262,25 +252,29 @@ public class Misc {
 		StringBuilder sb = new StringBuilder();
 		int curChar = -1;
 		int prevChar = -1;
-		while ((curChar = reader.read()) != -1 || prevChar == '\r') {
-			if (prevChar == '\r' || curChar == '\n') {
-				if (endOfLineString == null) {
-					if (prevChar == '\r')
-						sb.append((char) prevChar);
-					if (curChar == '\n')
-						sb.append((char) curChar);
+		try {
+			while ((curChar = reader.read()) != -1 || prevChar == '\r') {
+				if (prevChar == '\r' || curChar == '\n') {
+					if (endOfLineString == null) {
+						if (prevChar == '\r')
+							sb.append((char) prevChar);
+						if (curChar == '\n')
+							sb.append((char) curChar);
+					}
+					else {
+						sb.append(endOfLineString);
+					}
 				}
-				else {
-					sb.append(endOfLineString);
+				if (curChar != '\r' && curChar != '\n' && curChar != -1) {
+					String appendStr =""+(char) curChar;
+					sb.append(xmlEncode ? XmlUtils.encodeChars(appendStr) : appendStr);
 				}
+				prevChar = curChar;
 			}
-			if (curChar != '\r' && curChar != '\n' && curChar != -1) {
-				String appendStr =""+(char) curChar;
-				sb.append(xmlEncode ? XmlUtils.encodeChars(appendStr) : appendStr);
-			}
-			prevChar = curChar;
+			return sb.toString();
+		} finally {
+			reader.close();
 		}
-		return sb.toString();
 	}
 
 	public static String streamToString(InputStream stream) throws IOException {
@@ -291,24 +285,17 @@ public class Misc {
 		return streamToString(stream, null, streamEncoding, false);
 	}
 
-	public static String streamToString(InputStream stream, String endOfLineString, boolean xmlEncode)
-		throws IOException {
+	public static String streamToString(InputStream stream, String endOfLineString, boolean xmlEncode) throws IOException {
 		return streamToString(stream,endOfLineString, DEFAULT_INPUT_STREAM_ENCODING, xmlEncode);
 	}
 
-	public static String streamToString(InputStream stream, String endOfLineString, String streamEncoding, boolean xmlEncode)
-		throws IOException {
+	public static String streamToString(InputStream stream, String endOfLineString, String streamEncoding, boolean xmlEncode) throws IOException {
 		return readerToString(new InputStreamReader(stream, streamEncoding), endOfLineString, xmlEncode);
 	}
 
 	public static String resourceToString(URL resource, String endOfLineString, boolean xmlEncode) throws IOException {
 		InputStream stream = resource.openStream();
-		try {
-			return streamToString(stream, endOfLineString, xmlEncode);
-		}
-		finally {
-			stream.close();
-		}
+		return streamToString(stream, endOfLineString, xmlEncode);
 	}
 
 	public static String resourceToString(URL resource) throws IOException {
@@ -320,12 +307,8 @@ public class Misc {
 	}
 
 	public static void stringToFile(String string, String fileName) throws IOException {
-		FileWriter fw = new FileWriter(fileName);
-		try {
+		try (FileWriter fw = new FileWriter(fileName)) {
 			fw.write(string);
-		}
-		finally {
-			fw.close();
 		}
 	}
 
@@ -369,7 +352,24 @@ public class Misc {
 	}
 
 	public static String hide(String string) {
-		return StringUtils.repeat("*", string.length());
+		return hide(string, 0);
+	}
+
+	public static String hide(String string, int mode) {
+		if (StringUtils.isEmpty(string)) {
+			return string;
+		}
+		int len = string.length();
+		if (mode == 1) {
+			if (len <= 2) {
+				return string;
+			}
+			char firstChar = string.charAt(0);
+			char lastChar = string.charAt(len - 1);
+			return firstChar + StringUtils.repeat("*", len - 2) + lastChar;
+		} else {
+			return StringUtils.repeat("*", len);
+		}
 	}
 
 	public static String byteArrayToString(byte[] input, String endOfLineString, boolean xmlEncode) throws IOException{
@@ -542,7 +542,7 @@ public class Misc {
 		return localHost;
 	}
 
-	public static void copyContext(String keys, Map from, Map to) {
+	public static void copyContext(String keys, Map<String,Object> from, Map<String,Object> to) {
 		if (StringUtils.isNotEmpty(keys) && from!=null && to!=null) {
 			StringTokenizer st = new StringTokenizer(keys,",;");
 			while (st.hasMoreTokens()) {
@@ -568,6 +568,9 @@ public class Misc {
 		try {
             return (String) Class.forName("nl.nn.adapterframework.util.IbmMisc").getMethod("getApplicationDeploymentDescriptorPath").invoke(null);
 		} catch (Exception e) {
+			if("WAS".equals(AppConstants.getInstance().getString("application.server.type", ""))) {
+				throw new IOException(e);
+			}
             log.debug("Caught NoClassDefFoundError for getApplicationDeploymentDescriptorPath, just not on Websphere Application Server: " + e.getMessage());
             return null;
         }
@@ -752,6 +755,25 @@ public class Misc {
 		return sb.toString();
 	}
 
+	public static void addItemsToList(Collection<String> collection, String list, String collectionDescription, boolean lowercase) {
+		if (list==null) {
+			return;
+		}
+		StringTokenizer st = new StringTokenizer(list, ",");
+		while (st.hasMoreTokens()) {
+			String item = st.nextToken().trim();
+			if (lowercase) {
+				item=item.toLowerCase();
+			}
+			log.debug("adding item to "+collectionDescription+" ["+item+"]");
+			collection.add(item);
+		}
+		if (list.trim().endsWith(",")) {
+			log.debug("adding item to "+collectionDescription+" <empty string>");
+			collection.add("");
+		}
+	}
+
 	public static String getFileSystemTotalSpace() {
 		try {
 			Method getTotalSpace = File.class.getMethod("getTotalSpace", (java.lang.Class[]) null);
@@ -796,7 +818,7 @@ public class Misc {
 		}
 	}
 
-	public static String getTotalTransactionLifetimeTimeout() throws IOException, DomBuilderException, TransformerException {
+	public static String getTotalTransactionLifetimeTimeout() throws IOException, SAXException, TransformerException {
 		String confSrvString = getConfigurationServer();
 		if (confSrvString==null) {
 			return null;
@@ -804,7 +826,7 @@ public class Misc {
 		return getTotalTransactionLifetimeTimeout(confSrvString);
 	}
 
-	public static String getTotalTransactionLifetimeTimeout(String configServerXml) throws IOException, DomBuilderException, TransformerException {
+	public static String getTotalTransactionLifetimeTimeout(String configServerXml) throws IOException, SAXException, TransformerException {
 		if (configServerXml==null) {
 			return null;
 		}
@@ -815,7 +837,7 @@ public class Misc {
 		return tp.transform(confSrvString, null);
 	}
 
-	public static String getMaximumTransactionTimeout() throws IOException, DomBuilderException, TransformerException {
+	public static String getMaximumTransactionTimeout() throws IOException, SAXException, TransformerException {
 		String confSrvString = getConfigurationServer();
 		if (confSrvString==null) {
 			return null;
@@ -823,7 +845,7 @@ public class Misc {
 		return getMaximumTransactionTimeout(confSrvString);
 	}
 
-	public static String getMaximumTransactionTimeout(String configServerXml) throws IOException, DomBuilderException, TransformerException {
+	public static String getMaximumTransactionTimeout(String configServerXml) throws IOException, SAXException, TransformerException {
 		if (configServerXml==null) {
 			return null;
 		}
@@ -920,6 +942,17 @@ public class Misc {
 		return defaultValue;
 	}
 	
+	public static String cleanseMessage(String inputString, String hideRegex, String hideMethod) {
+		if (StringUtils.isEmpty(hideRegex)) {
+			return inputString;
+		}
+		if ("firstHalf".equalsIgnoreCase(hideMethod)) {
+			return hideFirstHalf(inputString, hideRegex);
+		} else {
+			return hideAll(inputString, hideRegex);
+		}
+	}
+	
 	public static String hideFirstHalf(String inputString, String regex) {
 		return hideAll(inputString, regex, 1);
 	}
@@ -984,5 +1017,14 @@ public class Misc {
 	public static String toSortName(String name) {
 		// replace low line (x'5f') by asterisk (x'2a) so it's sorted before any digit and letter 
 		return StringUtils.upperCase(StringUtils.replace(name,"_", "*"));
+	}
+
+	public static int countRegex(String string, String regex) {
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(string);
+		int count = 0;
+		while (matcher.find())
+			count++;
+		return count;
 	}
 }

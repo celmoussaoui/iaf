@@ -43,7 +43,6 @@ import nl.nn.adapterframework.util.XmlUtils;
 /**
  * Assumes input to be the file name of a ZIP archive, and unzips it to a
  * directory and/or an XML message.
- *
  * <br>
  * The output of each unzipped item is returned in XML as follows when
  * collectFileContents is false:
@@ -77,14 +76,14 @@ import nl.nn.adapterframework.util.XmlUtils;
  *       ...
  *  &lt;/results&gt;
  * </pre>
- * 
- * <p><b>Exits:</b>
- * <table border="1">
- * <tr><th>state</th><th>condition</th></tr>
- * <tr><td>"success"</td><td>default</td></tr>
- * <tr><td><i>{@link #setForwardName(String) forwardName}</i></td><td>if specified</td></tr>
- * </table>
- * </p>
+ * <br>
+ * By default, this pipe takes care
+ * to produce unique file names, as follows. When the filename within
+ * the archive is:
+ * <pre>&lt;basename&gt; + "." + &lt;extension&gt;</pre>
+ * then the extracted filename (path omitted) becomes
+ * <pre>&lt;basename&gt; + &lt;unique number&gt; + "." + &lt;extension&gt;</pre>
+ * <br>
  * 
  * @since   4.9
  * @author  Gerrit van Brakel
@@ -103,7 +102,9 @@ public class UnzipPipe extends FixedForwardPipe {
 	private File dir; // File representation of directory
 	private List<String> base64Extensions;
 
+	private boolean checkDirectory=false;
 
+	@Override
 	public void configure() throws ConfigurationException {
 		super.configure();
 		if (StringUtils.isEmpty(getDirectory())) {
@@ -112,11 +113,13 @@ public class UnzipPipe extends FixedForwardPipe {
 			}
 		} else {
 			dir = new File(getDirectory());
-			if (!dir.exists()) {
-				throw new ConfigurationException(getLogPrefix(null)+"directory ["+getDirectory()+"] does not exist");
-			}
-			if (!dir.isDirectory()) {
-				throw new ConfigurationException(getLogPrefix(null)+"directory ["+getDirectory()+"] is not a directory");
+			if(!isCheckDirectory()) {
+				if (!dir.exists()) {
+					throw new ConfigurationException(getLogPrefix(null)+"directory ["+getDirectory()+"] does not exist");
+				}
+				if (!dir.isDirectory()) {
+					throw new ConfigurationException(getLogPrefix(null)+"directory ["+getDirectory()+"] is not a directory");
+				}
 			}
 		}
 		if (StringUtils.isEmpty(getCollectFileContentsBase64Encoded())) {
@@ -126,6 +129,7 @@ public class UnzipPipe extends FixedForwardPipe {
 		}
 	}
 
+	@Override
 	public PipeRunResult doPipe(Object input, IPipeLineSession session) throws PipeRunException {
 		InputStream in;
 		if (input instanceof InputStream) {
@@ -150,10 +154,10 @@ public class UnzipPipe extends FixedForwardPipe {
 				dir = new File(directory);
 				if (!dir.exists()) {
 					if (!isCollectFileContents()) {
-						throw new PipeRunException(this, "directorySessionKey ["+directory+"] does not exist");
+						throw new PipeRunException(this, "Directory ["+directory+"] does not exist");
 					}
 				} else if (!dir.isDirectory()) {
-					throw new PipeRunException(this, "directorySessionKey ["+directory+"] is not a directory");
+					throw new PipeRunException(this, "Directory ["+directory+"] is not a directory");
 				}
 			}
 		}
@@ -183,7 +187,7 @@ public class UnzipPipe extends FixedForwardPipe {
 					String filename=ze.getName();
 					String basename=null;
 					String extension=null;
-					int dotPos=filename.indexOf('.');
+					int dotPos=filename.lastIndexOf('.');
 					if (dotPos>=0) {
 						extension=filename.substring(dotPos);
 						basename=filename.substring(0,dotPos);
@@ -326,5 +330,15 @@ public class UnzipPipe extends FixedForwardPipe {
 	}
 	public boolean isCreateSubdirectories() {
 		return createSubdirectories;
+	}
+	
+	@IbisDoc({"if set <code>true</code>, validation on directory is ignored", "false"})
+	public boolean isCheckDirectory()
+	{
+		return checkDirectory;
+	}
+	public void setCheckDirectory(boolean checkDirectory)
+	{
+		this.checkDirectory = checkDirectory;
 	}
 }

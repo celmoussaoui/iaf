@@ -1,5 +1,5 @@
 /*
-   Copyright 2013, 2016-2017 Nationale-Nederlanden
+   Copyright 2013, 2016-2017,2019 Nationale-Nederlanden
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,33 +22,30 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 
 import org.apache.log4j.Logger;
-import org.xml.sax.SAXException;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IPipeLineSession;
-import nl.nn.adapterframework.core.IbisException;
 import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.PipeLineSessionBase;
+import nl.nn.adapterframework.stream.Message;
 import nl.nn.adapterframework.util.DomBuilderException;
 import nl.nn.adapterframework.util.LogUtil;
 import nl.nn.adapterframework.util.XmlUtils;
  
 /**
- * Determines the parameter values of the specified parameter during runtime
+ * Enables to determine the parameter values of the parameters during runtime.
  * 
  * @author Gerrit van Brakel
  */
 public class ParameterResolutionContext {
 	protected Logger log = LogUtil.getLogger(this);
 
-	private String input;
+	private Message message;
 	private IPipeLineSession session;
 	private Map<Boolean,Source> xmlSource;
-//	private boolean cacheXmlSource;
 	private boolean namespaceAware;
 
 	/**
@@ -56,11 +53,9 @@ public class ParameterResolutionContext {
 	 * 
 	 * PLEASE NOTE thread safety, see the documentation of parameter
 	 * singleThreadOnly.
-	 *  
-	 * @param input          the (xml formatted) input message
+	 * @param input TODO
 	 * @param session        the session object
 	 * @param namespaceAware whether to process xml namespace aware
-	 * @param xslt2NotUsed   when true use xslt2
 	 * @param singleThreadOnly when true (and the input message is transformed to
 	 *                       a DOM object) the DOM object is cached for
 	 *                       subsequent usage. Please note that a DOM object is
@@ -70,20 +65,25 @@ public class ParameterResolutionContext {
 	 *                       Disable caching when the ParameterResolutionContext
 	 *                       is used by multiple threads.
 	 */
-	public ParameterResolutionContext(String input, IPipeLineSession session, boolean namespaceAware, boolean xslt2NotUsed, boolean singleThreadOnly) {
-		this.input = input;
-		this.session = session;
-		this.namespaceAware = namespaceAware;
-		if (singleThreadOnly) {
-			xmlSource=new HashMap<Boolean,Source>();
-		}
+
+	public ParameterResolutionContext(Object input, IPipeLineSession session, boolean namespaceAware, boolean singleThreadOnly) {
+	if (input instanceof Message) {
+		this.message=(Message)input;
+	} else {
+		this.message= new Message(input);
+	}
+	this.session = session;
+	this.namespaceAware = namespaceAware;
+	if (singleThreadOnly) {
+		xmlSource=new HashMap<Boolean,Source>();
+	}
+}
+
+	public ParameterResolutionContext(Object input, IPipeLineSession session, boolean namespaceAware) {
+		this(input, session, namespaceAware, true);
 	}
 
-	public ParameterResolutionContext(String input, IPipeLineSession session, boolean namespaceAware) {
-		this(input, session, namespaceAware, false, true);
-	}
-
-	public ParameterResolutionContext(String input, IPipeLineSession session) {
+	public ParameterResolutionContext(Object input, IPipeLineSession session) {
 		this(input, session, XmlUtils.isNamespaceAwareByDefault());
 	}
 
@@ -91,17 +91,14 @@ public class ParameterResolutionContext {
 	}
 
 	/**
-	 * @param p
-	 * @return value as a <link>ParameterValue<link> object
-	 * @throws IbisException
+	 * Get value as a <link>ParameterValue<link> object
 	 */
 	private ParameterValue getValue(ParameterValueList alreadyResolvedParameters, Parameter p) throws ParameterException {
 		return new ParameterValue(p, p.getValue(alreadyResolvedParameters, this));
 	}
 	
 	/**
-	 * @param parameters
-	 * @return arraylist of <link>ParameterValue<link> objects
+	 * Returns an array list of <link>ParameterValue<link> objects
 	 */
 	public ParameterValueList getValues(ParameterList parameters) throws ParameterException {
 		if (parameters == null)
@@ -111,15 +108,16 @@ public class ParameterResolutionContext {
 		for (Iterator<Parameter> parmIterator= parameters.iterator(); parmIterator.hasNext(); ) {
 			Parameter parm = parmIterator.next();
 			String parmSessionKey = parm.getSessionKey();
+			// if a parameter has sessionKey="*", then a list is generated with a synthetic parameter referring to 
+			// each session variable whose name starts with the name of the original parameter
 			if ("*".equals(parmSessionKey)) {
 				String parmName = parm.getName();
-				for (Iterator<String> keyIterator = session.keySet().iterator(); keyIterator.hasNext();) {
-					String key = keyIterator.next();
-					if (!PipeLineSessionBase.tsReceivedKey.equals(key)) {
-						if ((key.startsWith(parmName) || "*".equals(parmName))) {
+				for (String sessionKey: session.keySet()) {
+					if (!PipeLineSessionBase.tsReceivedKey.equals(sessionKey) && !PipeLineSessionBase.tsSentKey.equals(sessionKey)) {
+						if ((sessionKey.startsWith(parmName) || "*".equals(parmName))) {
 							Parameter newParm = new Parameter();
-							newParm.setName(key);
-							newParm.setSessionKey(key);
+							newParm.setName(sessionKey);
+							newParm.setSessionKey(sessionKey); // TODO: Should also set the parameter.type, based on the type of the session key.
 							try {
 								newParm.configure();
 							} catch (ConfigurationException e) {
@@ -137,8 +135,7 @@ public class ParameterResolutionContext {
 	}
 
 	/**
-	 * @param parameters
-	 * @return map of value objects
+	 * Returns a Map of value objects
 	 */
 	public Map<String,Object> getValueMap(ParameterList parameters) throws ParameterException {
 		if (parameters==null) {
@@ -164,22 +161,16 @@ public class ParameterResolutionContext {
 		return values;
 	}
 		
-	/**
-	 * @return the DOM document parsed from the (xml formatted) input
-	 * @throws ParserConfigurationException
-	 * @throws SAXException
-	 * @throws IOException
-	 */
-	@Deprecated 
-	public Source getInputSource() throws DomBuilderException {
-		return getInputSource(isNamespaceAware());
-	}
 	
 	public Source getInputSource(boolean namespaceAware) throws DomBuilderException {
 		Source result = xmlSource!=null?xmlSource.get(namespaceAware):null;
 		if (result == null) {
 			log.debug("Constructing InputSource for ParameterResolutionContext");
-			result = XmlUtils.stringToSource(input,namespaceAware); 
+			try {
+				result = XmlUtils.stringToSource(message.asString(),namespaceAware);
+			} catch (IOException e) {
+				throw new DomBuilderException(e);
+			} 
 			if (xmlSource!=null) {
 				xmlSource.put(namespaceAware, result);
 			}
@@ -187,22 +178,9 @@ public class ParameterResolutionContext {
 		return result;
 	}
 
-	/**
-	 * @return the (possibly xml formatted) input message
-	 */
-	public String getInput() {
-		return input;
-	}
-	/**
-	 * @param input the (xml formatted) input message
-	 */
-	public void setInput(String input) {
-		this.input = input;
-		this.xmlSource = null;
-	}
 
 	/**
-	 * @return hashtable with session variables
+	 * Returns hashtable with session variables
 	 */
 	public IPipeLineSession getSession() {
 		return session;
@@ -218,6 +196,10 @@ public class ParameterResolutionContext {
 	@Deprecated 
 	public void setNamespaceAware(boolean b) {
 		namespaceAware = b;
+	}
+
+	public Message getMessage() {
+		return message;
 	}
 
 }

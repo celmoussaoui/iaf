@@ -15,17 +15,21 @@
 */
 package nl.nn.adapterframework.pipes;
 
+import java.lang.reflect.Field;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import nl.nn.adapterframework.doc.IbisDoc;
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 import org.springframework.transaction.TransactionDefinition;
 
+import nl.nn.adapterframework.configuration.ClassLoaderManager;
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.configuration.ConfigurationWarnings;
 import nl.nn.adapterframework.core.Adapter;
@@ -54,7 +58,7 @@ import nl.nn.adapterframework.util.XmlUtils;
 
 /**
  * Base class for {@link IPipe Pipe}.
- * A Pipe represents an action to take in a {@link PipeLine Pipeline}. This class is ment to be extended
+ * A Pipe represents an action to take in a {@link PipeLine Pipeline}. This class is meant to be extended
  * for defining steps or actions to take to complete a request. <br/>
  * The contract is that a pipe is created (by the digester), {@link #setName(String)} is called and
  * other setters are called, and then {@link IPipe#configure()} is called, optionally
@@ -67,17 +71,17 @@ import nl.nn.adapterframework.util.XmlUtils;
  * For the duration of the processing of a message by the {@link PipeLine pipeline} has a {@link IPipeLineSession pipeLineSession}.
  * <br/>
  * By this mechanism, pipes may communicate with one another.<br/>
- * However, use this functionality with caution, as it is not desirable to make pipes dependend
+ * However, use this functionality with caution, as it is not desirable to make pipes dependent
  * on each other. If a pipe expects something in a session, it is recommended that
  * the key under which the information is stored is configurable (has a setter for this keyname).
  * Also, the setting of something in the <code>PipeLineSession</code> should be done using
  * this technique (specifying the key under which to store the value by a parameter).
  * </p>
- * <p>Since 4.1 this class also has parameters, so that decendants of this class automatically are parameter-enabled.
+ * <p>Since 4.1 this class also has parameters, so that descendants of this class automatically are parameter-enabled.
  * However, your documentation should say if and how parameters are used!<p>
  * <tr><td>{@link #setWriteToSecLog (boolean) writeToSecLog}</td><td>when set to <code>true</code> a record is written to the security log when the pipe has finished successfully</td><td>false</td></tr>
  * <tr><td>{@link #setSecLogSessionKeys(String) secLogSessionKeys}</td><td>(only used when <code>writeToSecLog=true</code>) comma separated list of keys of session variables that is appended to the security log record</td><td>&nbsp;</td></tr>
- * <tr><td>{@link #setLogIntermediaryResults (boolean) logIntermediaryResults}</td><td>when set, the value in AppConstants is overwritten (for this pipe only)</td><td>&nbsp;</td></tr>
+ * <tr><td>{@link #setLogIntermediaryResults (String) logIntermediaryResults}</td><td>when set, the value in AppConstants is overwritten (for this pipe only)</td><td>&nbsp;</td></tr>
  * <tr><td>{@link #setHideRegex(String) hideRegex}</td><td>Regular expression to mask strings in the log. For example, the regular expression <code>(?&lt;=&lt;password&gt;).*?(?=&lt;/password&gt;)</code> will replace every character between keys '&lt;password&gt;' and '&lt;/password&gt;'. <b>Note:</b> this feature is used at adapter level, so one pipe affects all pipes in the pipeline (and multiple values in different pipes are merged)</td><td>&nbsp;</td></tr>
  * </table>
  * </p>
@@ -95,18 +99,17 @@ import nl.nn.adapterframework.util.XmlUtils;
  */
 public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttribute, EventThrowing {
 	protected Logger log = LogUtil.getLogger(this);
-	protected ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+	private ClassLoader configurationClassLoader = Thread.currentThread().getContextClassLoader();
 
 	private String name;
-
-	private Map<String, PipeForward> pipeForwards = new Hashtable<String, PipeForward>();
-	private int maxThreads = 0;
-	private ParameterList parameterList = new ParameterList();
-	private long durationThreshold = -1;
 	private String getInputFromSessionKey=null;
 	private String getInputFromFixedValue=null;
 	private String storeResultInSessionKey=null;
 	private boolean preserveInput=false;
+
+	private int maxThreads = 0;
+	private long durationThreshold = -1;
+
 	private String chompCharSize = null;
 	private String elementToMove = null;
 	private String elementToMoveSessionKey = null;
@@ -114,9 +117,10 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 	private boolean removeCompactMsgNamespaces = true;
 	private boolean restoreMovedElements=false;
 	private boolean namespaceAware=XmlUtils.isNamespaceAwareByDefault();
+	
 	private int transactionAttribute=TransactionDefinition.PROPAGATION_SUPPORTS;
 	private int transactionTimeout=0;
-	private boolean sizeStatistics = AppConstants.getInstance().getBoolean("statistics.size", false);
+	private boolean sizeStatistics = AppConstants.getInstance(configurationClassLoader).getBoolean("statistics.size", false);
 	private Locker locker;
 	private String emptyInputReplacement=null;
 	private boolean writeToSecLog = false;
@@ -127,6 +131,8 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 
 	private boolean active=true;
 
+	private Map<String, PipeForward> pipeForwards = new Hashtable<String, PipeForward>();
+	private ParameterList parameterList = new ParameterList();
 	private EventHandler eventHandler=null;
 
 	private PipeLine pipeline;
@@ -209,7 +215,7 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 	 * @deprecated use {@link #doPipe(Object,IPipeLineSession)} instead
 	 */
 	@Deprecated
-	public PipeRunResult doPipe (Object input) throws PipeRunException {
+	public final PipeRunResult doPipe (Object input) throws PipeRunException {
 		throw new PipeRunException(this, "Pipe should implement method doPipe()");
 	}
 
@@ -279,7 +285,6 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 	/**
 	 * Register a PipeForward object to this Pipe. Global Forwards are added
 	 * by the PipeLine. If a forward is already registered, it logs a warning.
-	 * @param forward
 	 * @see PipeLine
 	 * @see PipeForward
 	 */
@@ -349,7 +354,13 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 	@Override
 	public String toString() {
 		try {
-			return ToStringBuilder.reflectionToString(this);
+			return (new ReflectionToStringBuilder(this) {
+				@Override
+				protected boolean accept(Field f) {
+					//TODO create a blacklist or whitelist
+					return super.accept(f) && !f.getName().contains("appConstants");
+				}
+			}).toString();
 		} catch (Throwable t) {
 			log.warn("exception getting string representation of pipe ["+getName()+"]", t);
 		}
@@ -407,6 +418,14 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 	}
 
 	/**
+	 * This ClassLoader is set upon creation of the pipe, used to retrieve resources configured by the Ibis application.
+	 * @return returns the ClassLoader created by the {@link ClassLoaderManager ClassLoaderManager}.
+	 */
+	public ClassLoader getConfigurationClassLoader() {
+		return configurationClassLoader;
+	}
+
+	/**
 	 * Indicates the maximum number of treads ;that may call {@link #doPipe(Object, IPipeLineSession)} simultaneously in case
 	 *  A value of 0 indicates an unlimited number of threads.
 	 */
@@ -422,7 +441,7 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 	/**
 	 * The functional name of this pipe
 	 */
-	@IbisDoc({"name of the pipe", ""})
+	@IbisDoc({"1", "name of the pipe", ""})
 	@Override
 	public void setName(String name) {
 		this.name=name;
@@ -432,6 +451,46 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 	@Override
 	public String getName() {
 		return this.name;
+	}
+
+	@IbisDoc({"2", "when set, input is taken from this session key, instead of regular input", ""})
+	@Override
+	public void setGetInputFromSessionKey(String string) {
+		getInputFromSessionKey = string;
+	}
+	@Override
+	public String getGetInputFromSessionKey() {
+		return getInputFromSessionKey;
+	}
+
+	@IbisDoc({"3", "when set, this fixed value is taken as input, instead of regular input", ""})
+	@Override
+	public void setGetInputFromFixedValue(String string) {
+		getInputFromFixedValue = string;
+	}
+	@Override
+	public String getGetInputFromFixedValue() {
+		return getInputFromFixedValue;
+	}
+
+	@IbisDoc({"4", "when set, the result is stored under this session key", ""})
+	@Override
+	public void setStoreResultInSessionKey(String string) {
+		storeResultInSessionKey = string;
+	}
+	@Override
+	public String getStoreResultInSessionKey() {
+		return storeResultInSessionKey;
+	}
+
+	@IbisDoc({"5", "when set <code>true</code>, the input of a pipe is restored before processing the next one", "false"})
+	@Override
+	public void setPreserveInput(boolean preserveInput) {
+		this.preserveInput = preserveInput;
+	}
+	@Override
+	public boolean isPreserveInput() {
+		return preserveInput;
 	}
 
 	/**
@@ -446,46 +505,6 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 	@Override
 	public long getDurationThreshold() {
 		return durationThreshold;
-	}
-
-	@IbisDoc({"when set, input is taken from this session key, instead of regular input", ""})
-	@Override
-	public void setGetInputFromSessionKey(String string) {
-		getInputFromSessionKey = string;
-	}
-	@Override
-	public String getGetInputFromSessionKey() {
-		return getInputFromSessionKey;
-	}
-
-	@IbisDoc({"when set, this fixed value is taken as input, instead of regular input", ""})
-	@Override
-	public void setGetInputFromFixedValue(String string) {
-		getInputFromFixedValue = string;
-	}
-	@Override
-	public String getGetInputFromFixedValue() {
-		return getInputFromFixedValue;
-	}
-
-	@IbisDoc({"when set, the result is stored under this session key", ""})
-	@Override
-	public void setStoreResultInSessionKey(String string) {
-		storeResultInSessionKey = string;
-	}
-	@Override
-	public String getStoreResultInSessionKey() {
-		return storeResultInSessionKey;
-	}
-
-	@IbisDoc({"when set <code>true</code>, the input of a pipe is restored before processing the next one", "false"})
-	@Override
-	public void setPreserveInput(boolean preserveInput) {
-		this.preserveInput = preserveInput;
-	}
-	@Override
-	public boolean isPreserveInput() {
-		return preserveInput;
 	}
 
 	@IbisDoc({"if set (>=0) and the character data length inside a xml element exceeds this size, the character data is chomped (with a clear comment)", ""})
@@ -560,6 +579,25 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 		return namespaceAware;
 	}
 
+	@IbisDoc({"Defines transaction and isolation behaviour."
+			+ "For developers: it is equal"
+	        + "to <a href=\"http://java.sun.com/j2ee/sdk_1.2.1/techdocs/guides/ejb/html/Transaction2.html#10494\">EJB transaction attribute</a>."
+	        + "Possible values are:"
+	        + "  <table border=\"1\">"
+	        + "    <tr><th>transactionAttribute</th><th>callers Transaction</th><th>Pipeline excecuted in Transaction</th></tr>"
+	        + "    <tr><td colspan=\"1\" rowspan=\"2\">Required</td>    <td>none</td><td>T2</td></tr>"
+	        + "											      <tr><td>T1</td>  <td>T1</td></tr>"
+	        + "    <tr><td colspan=\"1\" rowspan=\"2\">RequiresNew</td> <td>none</td><td>T2</td></tr>"
+	        + "											      <tr><td>T1</td>  <td>T2</td></tr>"
+	        + "    <tr><td colspan=\"1\" rowspan=\"2\">Mandatory</td>   <td>none</td><td>error</td></tr>"
+	        + "											      <tr><td>T1</td>  <td>T1</td></tr>"
+	        + "    <tr><td colspan=\"1\" rowspan=\"2\">NotSupported</td><td>none</td><td>none</td></tr>"
+	        + "											      <tr><td>T1</td>  <td>none</td></tr>"
+	        + "    <tr><td colspan=\"1\" rowspan=\"2\">Supports</td>    <td>none</td><td>none</td></tr>"
+	        + " 										      <tr><td>T1</td>  <td>T1</td></tr>"
+	        + "    <tr><td colspan=\"1\" rowspan=\"2\">Never</td>       <td>none</td><td>none</td></tr>"
+	        + "											      <tr><td>T1</td>  <td>error</td></tr>"
+	        + "  </table>", "Supports"})
 	public void setTransactionAttribute(String attribute) throws ConfigurationException {
 		transactionAttribute = JtaUtil.getTransactionAttributeNum(attribute);
 		if (transactionAttribute<0) {
@@ -571,6 +609,16 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 		return JtaUtil.getTransactionAttributeString(transactionAttribute);
 	}
 
+    @IbisDoc({"Like <code>transactionAttribute</code>, but the chosen "
+    	    + "option is represented with a number. The numbers mean:"
+    	    + "<table>"
+    	    + "<tr><td>0</td><td>Required</td></tr>"
+    	    + "<tr><td>1</td><td>Supports</td></tr>"
+    	    + "<tr><td>2</td><td>Mandatory</td></tr>"
+    	    + "<tr><td>3</td><td>RequiresNew</td></tr>"
+    	    + "<tr><td>4</td><td>NotSupported</td></tr>"
+    	    + "<tr><td>5</td><td>Never</td></tr>"
+    	    + "</table>", "1"})
 	public void setTransactionAttributeNum(int i) {
 		transactionAttribute = i;
 	}
@@ -588,7 +636,7 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 		return active;
 	}
 
-	@IbisDoc({"timeout (in seconds) of transaction started to process a message.", "<code>0</code> (use system default)</code>"})
+	@IbisDoc({"timeout (in seconds) of transaction started to process a message.", "<code>0</code> (use system default)"})
 	public void setTransactionTimeout(int i) {
 		transactionTimeout = i;
 	}
@@ -663,7 +711,7 @@ public abstract class AbstractPipe implements IExtendedPipe, HasTransactionAttri
 		return logIntermediaryResults;
 	}
 
-	@IbisDoc({"regular expression to mask strings in the log. for example, the regular expression <code>(?&lt;=&lt;password&gt;).*?(?=&lt;/password&gt;)</code> will replace every character between keys '&lt;password&gt;' and '&lt;/password&gt;'. <b>note:</b> this feature is used at adapter level, so one pipe affects all pipes in the pipeline (and multiple values in different pipes are merged)", ""})
+	@IbisDoc({"Regular expression to mask strings in the log. For example, the regular expression <code>(?&lt;=&lt;password&gt;).*?(?=&lt;/password&gt;)</code> will replace every character between keys '&lt;password&gt;' and '&lt;/password&gt;'. <b>note:</b> this feature is used at adapter level, so one pipe affects all pipes in the pipeline (and multiple values in different pipes are merged)", ""})
 	public void setHideRegex(String hideRegex) {
 		this.hideRegex = hideRegex;
 	}

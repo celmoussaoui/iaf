@@ -15,7 +15,6 @@
 */
 package nl.nn.adapterframework.pipes;
 
-import nl.nn.adapterframework.doc.IbisDoc;
 import org.apache.commons.lang.StringUtils;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
@@ -24,10 +23,12 @@ import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.core.PipeForward;
 import nl.nn.adapterframework.core.PipeRunException;
 import nl.nn.adapterframework.core.PipeRunResult;
+import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.parameters.ParameterList;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
 import nl.nn.adapterframework.parameters.ParameterValueList;
+import nl.nn.adapterframework.processors.InputOutputPipeProcessor;
 
 /**
  * Provides a base-class for a Pipe that always has the same forward.
@@ -36,13 +37,6 @@ import nl.nn.adapterframework.parameters.ParameterValueList;
  * <tr><td>{@link #setSkipOnEmptyInput(boolean) skipOnEmptyInput}</td><td>when set, this pipe is skipped</td><td>false</td></tr>
  * <tr><td>{@link #setIfParam(String) ifParam}</td><td>when set, this pipe is only executed when the value of parameter with name <code>ifParam</code> equals <code>ifValue</code> (otherwise this pipe is skipped)</td><td>&nbsp;</td></tr>
  * <tr><td>{@link #setIfValue(String) ifValue}</td><td>see <code>ifParam</code></td><td>&nbsp;</td></tr>
- * </table>
- * </p>
- * <p><b>Exits:</b>
- * <table border="1">
- * <tr><th>state</th><th>condition</th></tr>
- * <tr><td>"success"</td><td>default</td></tr>
- * <tr><td><i>{@link #setForwardName(String) forwardName}</i></td><td>if specified</td></tr>
  * </table>
  * </p>
  * @author Gerrit van Brakel
@@ -54,6 +48,7 @@ public class FixedForwardPipe extends AbstractPipe {
 	private boolean skipOnEmptyInput=false;
 	private String ifParam = null;
 	private String ifValue = null;
+	
     /**
      * checks for correct configuration of forward
      */
@@ -65,24 +60,24 @@ public class FixedForwardPipe extends AbstractPipe {
             throw new ConfigurationException(getLogPrefix(null) + "has no forward with name [" + forwardName + "]");
     }
 
-	public PipeRunResult doInitialPipe(Object input, IPipeLineSession session)
-			throws PipeRunException {
-		if ((input == null || StringUtils.isEmpty(input.toString()))
-				&& isSkipOnEmptyInput()) {
+
+    /**
+     * called by {@link InputOutputPipeProcessor} to check if the pipe needs to be skipped.
+     */
+    public PipeRunResult doInitialPipe(Object input, IPipeLineSession session) throws PipeRunException {
+		if (isSkipOnEmptyInput() && (input == null || StringUtils.isEmpty(input.toString()))) {
 			return new PipeRunResult(getForward(), input);
 		}
-		if (getIfParam() != null) {
+		if (StringUtils.isNotEmpty(getIfParam())) {
 			boolean skipPipe = true;
 
 			ParameterValueList pvl = null;
 			if (getParameterList() != null) {
-				ParameterResolutionContext prc = new ParameterResolutionContext(
-						(String) input, session);
+				ParameterResolutionContext prc = new ParameterResolutionContext((String) input, session);
 				try {
 					pvl = prc.getValues(getParameterList());
 				} catch (ParameterException e) {
-					throw new PipeRunException(this, getLogPrefix(session)
-							+ "exception on extracting parameters", e);
+					throw new PipeRunException(this, getLogPrefix(session) + "exception on extracting parameters", e);
 				}
 			}
 			String ip = getParameterValue(pvl, getIfParam());
@@ -115,14 +110,14 @@ public class FixedForwardPipe extends AbstractPipe {
 		return null;
 	}
 
-    protected PipeForward getForward() {
+    public PipeForward getForward() {
 		return forward;
 	}
+    
  	/**
- 	 * Sets the name of the <code>forward</code> that is looked up
- 	 * upon completion.
+ 	 * Sets the name of the <code>forward</code> that is looked up upon completion.
  	 */
-	@IbisDoc({"if specified", ""})
+	@IbisDoc({"1", "Sets the name of the <code>forward</code> that is looked up upon completion.", "success"})
 	public void setForwardName(String forwardName) {
         this.forwardName = forwardName;
     }
@@ -130,29 +125,26 @@ public class FixedForwardPipe extends AbstractPipe {
 		return forwardName;
 	}
 
-	@IbisDoc({"when set, this pipe is skipped", "false"})
+	@IbisDoc({"2", "when set, the processing continues directly at the forward of this pipe, without executing the pipe itself", "false"})
 	public void setSkipOnEmptyInput(boolean b) {
 		skipOnEmptyInput = b;
 	}
-
 	public boolean isSkipOnEmptyInput() {
 		return skipOnEmptyInput;
 	}
 
-	@IbisDoc({"when set, this pipe is only executed when the value of parameter with name <code>ifparam</code> equals <code>ifvalue</code> (otherwise this pipe is skipped)", ""})
+	@IbisDoc({"3", "when set, this pipe is only executed when the value of parameter with name <code>ifparam</code> equals <code>ifvalue</code> (otherwise this pipe is skipped)", ""})
 	public void setIfParam(String string) {
 		ifParam = string;
 	}
-
 	public String getIfParam() {
 		return ifParam;
 	}
 
-	@IbisDoc({"see <code>ifparam</code>", ""})
+	@IbisDoc({"4", "see <code>ifparam</code>", ""})
 	public void setIfValue(String string) {
 		ifValue = string;
 	}
-
 	public String getIfValue() {
 		return ifValue;
 	}

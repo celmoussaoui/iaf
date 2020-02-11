@@ -86,25 +86,28 @@ public class ProcessUtil {
 		return executeCommand(splitUpCommandString(command),timeout);
 	}
 	/**
-	 * Execute a command as a process in the operating system.
-	 *  
-	 * @param timeout timeout in seconds, or 0 to wait indefinetely until the process ends
-	 * @param command 
-	 * @throws TimeOutException
-	 * @throws SenderException
+	 * Execute a command as a process in the operating system. 
+	 * Timeout is passed in seconds, or 0 to wait indefinitely until the process ends
 	 */
 	public static String executeCommand(List command, int timeout) throws TimeOutException, SenderException {
 		String output;
 		String errors;
 
-		Process process;
+		final Process process;
 		try {
 			process = Runtime.getRuntime().exec((String[])command.toArray(new String[0]));
 		} catch (Throwable t) {
 			throw new SenderException("Could not execute command ["+getCommandLine(command)+"]",t);
 		}
-		TimeoutGuard tg = new TimeoutGuard("ProcessUtil ");
-		tg.activateGuard(timeout);
+		TimeoutGuard tg = new TimeoutGuard("ProcessUtil") {
+
+			@Override
+			protected void kill() {
+				process.destroy();
+			}
+			
+		};
+		tg.activateGuard(timeout) ;
 		try {
 			// Wait until the process is completely finished, or timeout is expired
 			process.waitFor();

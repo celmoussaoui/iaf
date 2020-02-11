@@ -23,6 +23,9 @@ import javax.json.stream.JsonGenerator;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
+import org.apache.xerces.xs.XSTypeDefinition;
+
+import nl.nn.adapterframework.util.LogUtil;
 
 /**
  * Helper class to construct JSON from XML events.
@@ -30,7 +33,7 @@ import org.apache.log4j.Logger;
  * @author Gerrit van Brakel
  */
 public class JsonDocumentContainer extends TreeContentContainer<JsonElementContainer>{
-	protected Logger log = Logger.getLogger(this.getClass());
+	protected Logger log = LogUtil.getLogger(this.getClass());
 	
 	private String name;
 	private boolean skipArrayElementContainers;
@@ -49,8 +52,8 @@ public class JsonDocumentContainer extends TreeContentContainer<JsonElementConta
 	}
 	
 	@Override
-	protected JsonElementContainer createElementContainer(String localName, boolean xmlArrayContainer, boolean repeatedElement) {
-		return new JsonElementContainer(localName, xmlArrayContainer, repeatedElement, skipArrayElementContainers, attributePrefix);
+	protected JsonElementContainer createElementContainer(String localName, boolean xmlArrayContainer, boolean repeatedElement, XSTypeDefinition typeDefinition) {
+		return new JsonElementContainer(localName, xmlArrayContainer, repeatedElement, skipArrayElementContainers, attributePrefix, typeDefinition);
 	}
 
 	@Override

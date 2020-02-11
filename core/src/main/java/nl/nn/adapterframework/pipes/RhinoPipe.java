@@ -55,19 +55,6 @@ import org.apache.commons.lang.SystemUtils;
  * </tr>
  * </table>
  * </p>
- * <p>
- * <b>Exits:</b>
- * <table border="1">
- * <tr>
- * <th>state</th>
- * <th>condition</th>
- * </tr>
- * <tr>
- * <td>"success"</td>
- * <td>default</td>
- * </tr>
- * </table>
- * </p>
  * 
  * @author Barry Jacobs
  */
@@ -83,12 +70,10 @@ public class RhinoPipe extends FixedForwardPipe {
 	private boolean lookupAtRuntime = false;
 	private boolean debug=false;
 	/**
-	 * checks for correct configuration, and translates the fileName to a file,
+	 * Checks for correct configuration, and translates the fileName to a file,
 	 * to check existence. If a fileName was specified, the contents of the file
 	 * is used as java-script function library. After evaluation the result is returned via
 	 * <code>Pipeline</code>.
-	 * 
-	 * @throws ConfigurationException
 	 */
 	public void configure() throws ConfigurationException {
 		super.configure();
@@ -96,7 +81,7 @@ public class RhinoPipe extends FixedForwardPipe {
 		if (StringUtils.isNotEmpty(getFileName()) && !isLookupAtRuntime()) {
 			URL resource = null;
 			try {
-				resource = ClassUtils.getResourceURL(classLoader, getFileName());
+				resource = ClassUtils.getResourceURL(getConfigurationClassLoader(), getFileName());
 			} catch (Throwable e) {
 				throw new ConfigurationException(
 					getLogPrefix(null) + "got exception searching for [" + getFileName() + "]", e);
@@ -146,7 +131,7 @@ public class RhinoPipe extends FixedForwardPipe {
 		if (StringUtils.isNotEmpty(getFileName()) && isLookupAtRuntime()) {
 			URL resource = null;
 			try {
-				resource = ClassUtils.getResourceURL(classLoader, getFileName());
+				resource = ClassUtils.getResourceURL(getConfigurationClassLoader(), getFileName());
 			} catch (Throwable e) {
 				throw new PipeRunException(this,getLogPrefix(session)+"got exception searching for ["+getFileName()+"]", e);
 			}
@@ -230,11 +215,6 @@ public class RhinoPipe extends FixedForwardPipe {
 			}
 	}
 
-/**
- * Sets the name of the filename. The fileName should not be specified as an
- * absolute path, but as a resource in the classpath.
- * 
- */
 	@IbisDoc({"when set <code>true</code> or set to something else then \"true\", (even set to the empty string), the debugging is not active", "true"})
 	public void setDebug(boolean b) {
 		debug = b;

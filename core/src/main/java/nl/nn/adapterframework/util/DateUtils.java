@@ -166,8 +166,7 @@ public class DateUtils {
 
 
 	/**
-	 * 
-	 * Deze functie maakt het mogelijk om een datum formaat te veranderen.
+	 * Convert date format
 	 * 
 	 * @param 	from	String	date format from.
 	 * @param 	to		String	date format to.
@@ -244,5 +243,8 @@ public class DateUtils {
 		return result;
 	}
 
+	public static boolean isSameDay(Date date1, Date date2) {
+		return org.apache.commons.lang.time.DateUtils.isSameDay(date1, date2);
+	}
 
 }

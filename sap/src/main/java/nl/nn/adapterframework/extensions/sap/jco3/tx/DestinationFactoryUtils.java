@@ -15,11 +15,8 @@
 */
 package nl.nn.adapterframework.extensions.sap.jco3.tx;
 
-import nl.nn.adapterframework.extensions.sap.jco3.SapException;
+import nl.nn.adapterframework.extensions.sap.SapException;
 import nl.nn.adapterframework.extensions.sap.jco3.SapSystem;
-import nl.nn.adapterframework.util.LogUtil;
-
-import org.apache.log4j.Logger;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -38,7 +35,6 @@ import com.sap.conn.jco.JCoException;
  * @since   5.0
  */
 public abstract class DestinationFactoryUtils {
-	private static final Logger logger = LogUtil.getLogger(DestinationFactoryUtils.class);
 
 	/**
 	 * Determine whether the given JCoDestination is transactional, that is,
@@ -59,7 +55,7 @@ public abstract class DestinationFactoryUtils {
 	/**
 	 * Obtain a TID String that is synchronized with the current transaction, if any.
 	 * @param sapSystem the SapSystem to obtain a TID for
-	 * @param existingCon the existing JCoDestination to obtain a String for
+	 * @param existingDestination the existing JCoDestination to obtain a String for
 	 * (may be <code>null</code>)
 	 * @param synchedLocalTransactionAllowed whether to allow for a local JMS transaction
 	 * that is synchronized with a Spring-managed transaction (where the main transaction
@@ -75,18 +71,23 @@ public abstract class DestinationFactoryUtils {
 			throws SapException, JCoException {
 
 		return doGetTransactionalTid(sapSystem, new ResourceFactory() {
+			@Override
 			public String getTid(JcoResourceHolder holder) {
 				return holder.getTid(existingDestination);
 			}
+			@Override
 			public JCoDestination getDestination(JcoResourceHolder holder) {
 				return (existingDestination != null ? existingDestination : holder.getDestination());
 			}
+			@Override
 			public JCoDestination createDestination() throws JCoException {
 				return sapSystem.getDestination();
 			}
+			@Override
 			public String createTid(JCoDestination destination) throws JCoException {
 				return destination.createTID();
 			}
+			@Override
 			public boolean isSynchedLocalTransactionAllowed() {
 				return synchedLocalTransactionAllowed;
 			}
@@ -98,18 +99,23 @@ public abstract class DestinationFactoryUtils {
 			throws SapException, JCoException {
 
 		return doGetTransactionalDestination(sapSystem, new ResourceFactory() {
+			@Override
 			public String getTid(JcoResourceHolder holder) {
 				return holder.getTid(holder.getDestination());
 			}
+			@Override
 			public JCoDestination getDestination(JcoResourceHolder holder) {
 				return holder.getDestination();
 			}
+			@Override
 			public JCoDestination createDestination() throws JCoException {
 				return sapSystem.getDestination();
 			}
+			@Override
 			public String createTid(JCoDestination destination) throws JCoException {
 				return destination.createTID();
 			}
+			@Override
 			public boolean isSynchedLocalTransactionAllowed() {
 				return synchedLocalTransactionAllowed;
 			}
@@ -122,9 +128,6 @@ public abstract class DestinationFactoryUtils {
 	 * (used as TransactionSynchronizationManager key)
 	 * @param resourceFactory the ResourceFactory to use for extracting or creating
 	 * JMS resources
-	 * @param startDestination whether the underlying JMS JCoDestination approach should be
-	 * started in order to allow for receiving messages. Note that a reused JCoDestination
-	 * may already have been started before, even if this flag is <code>false</code>.
 	 * @return the transactional String, or <code>null</code> if none found
 	 * @throws JCoException in case of failure
 	 */
@@ -180,14 +183,12 @@ public abstract class DestinationFactoryUtils {
 	 * @return the transactional JCoDestination, or <code>null</code> if none found
 	 * @throws JCoException in case of failure
 	 */
-	public static JCoDestination doGetTransactionalDestination(SapSystem sapSystem, ResourceFactory resourceFactory) throws JCoException
-			{
+	public static JCoDestination doGetTransactionalDestination(SapSystem sapSystem, ResourceFactory resourceFactory) throws JCoException {
 
 		Assert.notNull(sapSystem, "SapSystem must not be null");
 		Assert.notNull(resourceFactory, "ResourceFactory must not be null");
 
-		JcoResourceHolder resourceHolder =
-				(JcoResourceHolder) TransactionSynchronizationManager.getResource(sapSystem);
+		JcoResourceHolder resourceHolder = (JcoResourceHolder) TransactionSynchronizationManager.getResource(sapSystem);
 		if (resourceHolder != null) {
 			JCoDestination destination = resourceFactory.getDestination(resourceHolder);
 			if (destination != null) {
@@ -286,23 +287,27 @@ public abstract class DestinationFactoryUtils {
 			this.synchedLocalTransacted = synchedLocalTransacted;
 		}
 
+		@Override
 		public void suspend() {
 			if (this.holderActive) {
 				TransactionSynchronizationManager.unbindResource(this.resourceKey);
 			}
 		}
 
+		@Override
 		public void resume() {
 			if (this.holderActive) {
 				TransactionSynchronizationManager.bindResource(this.resourceKey, this.resourceHolder);
 			}
 		}
 
+		@Override
 		public void beforeCompletion() {
 			TransactionSynchronizationManager.unbindResource(this.resourceKey);
 			this.holderActive = false;
 		}
 
+		@Override
 		public void afterCommit() {
 			if (this.synchedLocalTransacted) {
 				try {
@@ -313,5 +318,4 @@ public abstract class DestinationFactoryUtils {
 			}
 		}
 	}
-
 }

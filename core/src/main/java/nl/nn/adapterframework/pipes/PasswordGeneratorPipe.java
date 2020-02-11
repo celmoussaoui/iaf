@@ -32,13 +32,6 @@ import nl.nn.adapterframework.doc.IbisDoc;
 /**
  * Returns random password.
  *
- * <p><b>Exits:</b>
- * <table border="1">
- * <tr><th>state</th><th>condition</th></tr>
- * <tr><td>"success"</td><td>default</td></tr>
- * <tr><td><i>{@link #setForwardName(String) forwardName}</i></td><td>if specified</td></tr>
- * </table>
- * </p>
  * @author  Milan Tomc
  * @since   4.5
  */
@@ -115,7 +108,6 @@ public class PasswordGeneratorPipe extends FixedForwardPipe {
 	}
 	/**
 	 * Change the order of the characters in a <code>String</code>
-	 * @param input
 	 */
 	protected String garbleString(String input){
 		List clist=new Vector();
@@ -140,7 +132,6 @@ public class PasswordGeneratorPipe extends FixedForwardPipe {
 	}
 
 	/**
-	 * @param b
 	 */
 	@IbisDoc({"whether the securerandom algorithm is to be used (slower)", "true"})
 	public void setUseSecureRandom(boolean b) {

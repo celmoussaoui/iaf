@@ -211,7 +211,7 @@ public abstract class AbstractRecordHandler implements IRecordHandler, IWithPara
 	}
 
 	/*
-	 * this method returns a List, and therefore cannot be called 'getRecordIdentifyingFields', 
+	 * Returns a List, and therefore cannot be called 'getRecordIdentifyingFields', 
 	 * because then setRecordIdentifyingFields is not found as a setter.
 	 */  
 	public List getRecordIdentifyingFieldList() {
@@ -246,6 +246,10 @@ public abstract class AbstractRecordHandler implements IRecordHandler, IWithPara
 		paramList.add(p);
 	}
 
+	@Override
+	public ParameterList getParameterList() {
+		return paramList;
+	}
 
 	@IbisDoc({"name of the recordhandler", ""})
 	@Override

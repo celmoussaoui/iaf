@@ -1,16 +1,20 @@
 angular.module('iaf.beheerconsole')
 
-.directive('pageTitle', ['$rootScope', '$timeout', function($rootScope, $timeout) {
+.directive('pageTitle', ['$rootScope', '$timeout', '$state', function($rootScope, $timeout, $state) {
 	return {
 		link: function(scope, element) {
-			var listener = function(event, toState, toParams, fromState, fromParams) {
-				var title = 'IAF, Ibis AdapterFramework'; // Default title
-				if (toState.data && toState.data.pageTitle) title = 'IAF | ' + toState.data.pageTitle;
+			var listener = function(_, toState) {
+				var title = 'Loading...'; // Default title
+				if (toState.data && toState.data.pageTitle && $rootScope.instanceName) title = $rootScope.dtapStage +'-'+$rootScope.instanceName+' | '+toState.data.pageTitle;
+				else if($rootScope.startupError) title = "ERROR";
 				$timeout(function() {
 					element.text(title);
 				});
 			};
 			$rootScope.$on('$stateChangeStart', listener);
+			$rootScope.$watch('::instanceName', function() {
+				listener(null, $state.current);
+			});
 		}
 	};
 }])
@@ -22,7 +26,7 @@ angular.module('iaf.beheerconsole')
 			time: '@'
 		},
 		link: function(scope, element, attributes) {
-			scope.$watch('time', updateTime);
+			scope.$watch('::time', updateTime);
 			function updateTime(time) {
 				if(isNaN(time))
 					time = new Date(time).getTime();
@@ -32,6 +36,33 @@ angular.module('iaf.beheerconsole')
 		}
 	};
 }])
+
+.directive('clipboard', function() {
+	return {
+		restrict: 'A',
+		controller: function ($scope, $element, $compile) {
+			var selector = angular.element('<i ng-click="copyToClipboard()" title="copy to clipboard" class="fa fa-clipboard" aria-hidden="true"></i>');
+			$element.append(selector);
+			$element.addClass("clipboard");
+			$compile(selector)($scope);
+
+			$scope.copyToClipboard = function () {
+				var textToCopy = $element.text().trim();
+				if(textToCopy) {
+					var el = document.createElement('textarea');
+					el.value = textToCopy;
+					el.setAttribute('readonly', '');
+					el.style.position = 'absolute';
+					el.style.left = '-9999px';
+					document.body.appendChild(el);
+					el.select();
+					document.execCommand('copy');
+					document.body.removeChild(el);
+				}
+			};
+		}
+	};
+})
 
 .directive('timeSince', ['appConstants', '$interval', function(appConstants, $interval) {
 	return {
@@ -99,6 +130,39 @@ angular.module('iaf.beheerconsole')
 
 			});
 		}
+	};
+}])
+
+.directive('customViews', ['appConstants', function(appConstants) {
+	return {
+		restrict: 'E',
+		replace: true,
+		link: function(scope, element, attributes) {
+			scope.customViews = [];
+			scope.$watch('::dtapStage', function() {
+				var customViews = appConstants["customViews.names"];
+				if(customViews == undefined)
+					return;
+
+				if(customViews.length > 0) {
+					var views = customViews.split(",");
+					for(i in views) {
+						var viewId = views[i];
+						var name = appConstants["customViews."+viewId+".name"];
+						var url =  appConstants["customViews."+viewId+".url"];
+						if(name && url)
+							scope.customViews.push({
+								view: viewId,
+								name: name,
+								url: url
+							});
+					}
+				}
+			});
+		},
+		template: '<li ng-repeat="view in customViews" ui-sref-active="active">'+
+		'<a ui-sref="pages.customView(view)"><i class="fa fa-desktop"></i> <span class="nav-label">{{view.name}}</span></a>' +
+		'</li>'
 	};
 }])
 
@@ -190,6 +254,19 @@ angular.module('iaf.beheerconsole')
 	};
 })
 
+.directive('scrollToTop', function() {
+	return {
+		restrict: 'A',
+		replace: true,
+		template: '<div class="scroll-to-top"><a title="Scroll to top" ng-click="scrollTop()"><i class="fa fa-arrow-up"></i> <span class="nav-label">Scroll To Top</span></a></div>',
+		controller: function ($scope) {
+			$scope.scrollTop = function() {
+				$(window).scrollTop(0);
+			};
+		}
+	};
+})
+
 .directive('generalDataProtectionRegulation', ['$uibModal', 'GDPR', function($uibModal, GDPR) {
 	return {
 		restrict: 'A',
@@ -236,16 +313,15 @@ angular.module('iaf.beheerconsole')
 	};
 }])
 
-.directive('icheck', ['$timeout', function($timeout) {
+.directive('icheck', ['$timeout', '$parse', function($timeout, $parse) {
 	return {
 		restrict: 'A',
 		require: 'ngModel',
 		link: function($scope, element, $attrs, ngModel) {
 			return $timeout(function() {
-				var value;
-				value = $attrs['value'];
+				var value = $attrs['value'];
 
-				$scope.$watch($attrs['ngModel'], function(newValue){
+				$scope.$watch($attrs['ngModel'], function(newValue) {
 					$(element).iCheck('update');
 				});
 
@@ -262,6 +338,31 @@ angular.module('iaf.beheerconsole')
 						if ($(element).attr('type') === 'radio' && $attrs['ngModel']) {
 							return $scope.$apply(function() {
 								return ngModel.$setViewValue(value);
+							});
+						}
+					});
+			});
+		}
+	};
+}])
+
+.directive('icheckRadius', ['$timeout', '$parse', function($timeout, $parse) {
+	return {
+		restrict: 'A',
+		require: 'ngModel',
+		link: function($scope, element, $attrs, ngModel) {
+			return $timeout(function() {
+
+				$scope.$watch($attrs['ngModel'], function(newValue) {
+					$(element).iCheck('update');
+				});
+
+				return $(element).iCheck({
+					checkboxClass: 'iradio_square-green',
+				}).on('ifChanged', function(event) {
+						if ($(element).attr('type') === 'checkbox' && $attrs['ngModel']) {
+							$scope.$apply(function() {
+								return ngModel.$setViewValue(event.target.checked);
 							});
 						}
 					});

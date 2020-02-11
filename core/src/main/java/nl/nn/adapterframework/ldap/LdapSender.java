@@ -469,36 +469,6 @@ public class LdapSender extends JNDIBase implements ISenderWithParameters {
 		return true;
 	}
 
-	/*
-	 * Uses <code>Parameters2NameHelper</code> to create a CompositeName from parameter 
-	 */
-//	protected Name getNameFromParams(ParameterResolutionContext prc)
-//		throws ParameterException, InvalidNameException {
-//		Parameters2NameHelper helper = new Parameters2NameHelper(new CompositeName());
-//		prc.forAllParameters(paramList, helper);
-//		Name name = helper.result;
-//
-//		if (log.isDebugEnabled()) { log.debug("constructed LDAP Names from parameters [" + name + "]"); }
-//		return name;
-//	}
-
-//	private class Parameters2NameHelper implements IParameterHandler {
-//		private Name result;
-//		Parameters2NameHelper(Name base) {
-//			super();
-//			result = base;
-//		}
-//
-//		public void handleParam(String paramName, Object value)
-//			throws ParameterException {
-//			try {
-//				//				result.add(paramName+"='"+value+"'");
-//				result.add((String) value);
-//			} catch (InvalidNameException e) {
-//				throw new ParameterException("cannot make name from parameter ["+ paramName	+ "] value ["+ value + "]",	e);
-//			}
-//		}
-//	}
 
 	private String performOperationRead(String entryName, ParameterResolutionContext prc, Map paramValueMap) throws SenderException, ParameterException {
 		DirContext dirContext = null;
@@ -1139,8 +1109,6 @@ public class LdapSender extends JNDIBase implements ISenderWithParameters {
 
 	/**
 	 * Retrieves the DirContext from the JNDI environment and sets the <code>providerURL</code> back to <code>ldapProviderURL</code> if specified.
-	 * @throws ParameterException 
-	 * 
 	 */
 	protected synchronized DirContext loopkupDirContext(Map paramValueMap) throws NamingException, ParameterException {
 		DirContext dirContext;
@@ -1296,6 +1264,11 @@ public class LdapSender extends JNDIBase implements ISenderWithParameters {
 		paramList.add(p);
 	}
 
+	@Override
+	public ParameterList getParameterList() {
+		return paramList;
+	}
+
 	@IbisDoc({"name of the sender", ""})
 	@Override
 	public void setName(String name) {
@@ -1306,6 +1279,7 @@ public class LdapSender extends JNDIBase implements ISenderWithParameters {
 		return name;
 	}
 
+	@IbisDoc({"specifies operation to perform. Must be one of <ul><li><code>read</code>: read the contents of an entry</li><li><code>create</code>: create an attribute or an entry</li><li><code>update</code>: update an attribute or an entry</li><li><code>delete</code>: delete an attribute or an entry</li><li><code>search</code>: search for an entry in the direct children of the specified root</li><li><code>deepSearch</code>: search for an entry in the complete tree below the specified root</li><li><code>getSubContexts</code>: get a list of the direct children of the specifed root</li><li><code>getTree</code>: get a copy of the complete tree below the specified root</li><li><code>challenge</code>: check username and password against LDAP specifying principal and credential using parameters</li><li><code>changeUnicodePwd</code>: typical user change-password operation (one of the two methods to modify the unicodePwd attribute in AD (http://support.microsoft.com/kb/263991))</li></ul>", "read"})
 	public void setOperation(String string) {
 		operation = string;
 	}

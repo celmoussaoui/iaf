@@ -1,5 +1,5 @@
 /*
-   Copyright 2013, 2016, 2018 Nationale-Nederlanden
+   Copyright 2013, 2016, 2018 - 2019 Nationale-Nederlanden
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.lang.StringUtils;
@@ -76,8 +75,6 @@ import nl.nn.adapterframework.util.XmlUtils;
  */
 
 public final class ShowSecurityItems extends ActionBase {
-	public static final String AUTHALIAS_XSLT = "xml/xsl/authAlias.xsl";
-
 	private class JmsDestination {
 		String connectionFactoryJndiName;
 		String jndiName;
@@ -124,15 +121,15 @@ public final class ShowSecurityItems extends ActionBase {
 				confResString = XmlUtils.removeNamespaces(confResString);
 			}
 		} catch (IOException e) {
-			log.warn("error getting configuration resources ["+e+"]");
+			log.warn("error getting configuration resources", e);
 			confResString = null;
 		}
 
-		addJmsRealms(securityItems, confResString);
+		addJmsRealms(securityItems);
 		addProvidedJmsDestinations(securityItems, confResString);
 		addSapSystems(securityItems);
-		addAuthEntries(securityItems);
-		addServerProps(securityItems);
+		addAuthEntries(securityItems, request);
+		addConfServerProps(securityItems);
 
 		request.setAttribute("secItems", securityItems.toXML());
 
@@ -331,6 +328,7 @@ public final class ShowSecurityItems extends ActionBase {
 				appDD.setValue(appDDString, false);
 			}
 		} catch (IOException e) {
+			log.warn("error retrieving application deployment descriptor", e);
 			appDD.addAttribute("error", "true");
 			appDD.setCdataValue(e.getMessage());
 		}
@@ -349,14 +347,26 @@ public final class ShowSecurityItems extends ActionBase {
 				appBnd.setValue(appBndString, false);
 			}
 		} catch (Exception e) {
+			log.warn("error retrieving security role bindings", e);
 			appBnd.addAttribute("error", "true");
 			appBnd.setCdataValue(e.getMessage());
 		}
 		securityItems.addSubElement(appBnd);
 	}
 
-	private void addJmsRealms(XmlBuilder securityItems, String confResString) {
+	private void addJmsRealms(XmlBuilder securityItems) {
 		XmlBuilder jrs = new XmlBuilder("jmsRealms");
+
+		String confResString;
+		try {
+			confResString = Misc.getConfigurationResources();
+			if (confResString!=null) {
+				confResString = XmlUtils.removeNamespaces(confResString);
+			}
+		} catch (IOException e) {
+			log.warn("error getting jms realms", e);
+			confResString = null;
+		}
 		
 		List jmsRealms = JmsRealmFactory.getInstance().getRegisteredRealmNamesAsList();
 		if (jmsRealms.size()==0) {
@@ -371,6 +381,7 @@ public final class ShowSecurityItems extends ActionBase {
 				String tcfName = null;
 				String dsInfo = null;
 				String qcfInfo = null;
+				boolean dsInfoError = false;
 
 				DirectQuerySender qs = (DirectQuerySender)ibisManager.getIbisContext().createBeanAutowireByName(DirectQuerySender.class);
 				qs.setJmsRealm(jmsRealm);
@@ -378,7 +389,8 @@ public final class ShowSecurityItems extends ActionBase {
 					dsName = qs.getDataSourceNameToUse();
 					dsInfo = qs.getDatasourceInfo();
 				} catch (JdbcException jdbce) {
-					// no datasource
+					dsInfo = jdbce.getMessage();
+					dsInfoError = true;
 				}
 				if (StringUtils.isNotEmpty(dsName)) {
 					XmlBuilder jr = new XmlBuilder("jmsRealm");
@@ -387,14 +399,12 @@ public final class ShowSecurityItems extends ActionBase {
 					jr.addAttribute("datasourceName", dsName);
 					XmlBuilder infoElem = new XmlBuilder("info");
 					infoElem.setValue(dsInfo);
+					if (dsInfoError) {
+						infoElem.addAttribute("error", "true");
+					}
 					jr.addSubElement(infoElem);
 					if (confResString!=null) {
-					String connectionPoolProperties;
-					try {
-						connectionPoolProperties = Misc.getConnectionPoolProperties(confResString, "JDBC", dsName);
-					} catch (Exception e) {
-						connectionPoolProperties = "*** ERROR ***";
-					}
+						String connectionPoolProperties = Misc.getConnectionPoolProperties(confResString, "JDBC", dsName);
 						if (StringUtils.isNotEmpty(connectionPoolProperties)) {
 							infoElem = new XmlBuilder("info");
 							infoElem.setValue(connectionPoolProperties);
@@ -420,12 +430,7 @@ public final class ShowSecurityItems extends ActionBase {
 					infoElem.setValue(qcfInfo);
 					jr.addSubElement(infoElem);
 					if (confResString!=null) {
-					String connectionPoolProperties;
-					try {
-						connectionPoolProperties = Misc.getConnectionPoolProperties(confResString, "JMS", qcfName);
-					} catch (Exception e) {
-						connectionPoolProperties = "*** ERROR ***";
-					}
+						String connectionPoolProperties = Misc.getConnectionPoolProperties(confResString, "JMS", qcfName);
 						if (StringUtils.isNotEmpty(connectionPoolProperties)) {
 							infoElem = new XmlBuilder("info");
 							infoElem.setValue(connectionPoolProperties);
@@ -461,6 +466,7 @@ public final class ShowSecurityItems extends ActionBase {
 				providedJmsDestinationsXml = buildProvidedJmsDestinationsXml(
 						confResString, usedJmsDestinations);
 			} catch (Exception e) {
+				log.warn("error retrieving provided jms destinations", e);
 				providedJmsDestinationsXml = new XmlBuilder(
 						"providedJmsDestinations");
 				providedJmsDestinationsXml.addAttribute("error", "true");
@@ -556,7 +562,7 @@ public final class ShowSecurityItems extends ActionBase {
 		}
 		return usedJmsDestinations;
 	}
-	
+
 	private void addSapSystems(XmlBuilder securityItems) {
 		XmlBuilder sss = new XmlBuilder("sapSystems");
 
@@ -596,12 +602,14 @@ public final class ShowSecurityItems extends ActionBase {
 		securityItems.addSubElement(sss);
 	}
 
-	private void addAuthEntries(XmlBuilder securityItems) {
+	private void addAuthEntries(XmlBuilder securityItems, HttpServletRequest request) {
 		XmlBuilder aes = new XmlBuilder("authEntries");
 		try {
-			List entries = new ArrayList();
+			List<String> entries = new ArrayList<String>();
 			for (Configuration configuration : ibisManager.getConfigurations()) {
 				String configString = configuration.getLoadedConfiguration();
+				if(configString == null) continue; //If a configuration can't be found, continue...
+
 				Collection<String> c = XmlUtils.evaluateXPathNodeSet(configString, "//@*[starts-with(name(),'authAlias') or ends-with(name(),'AuthAlias')]");
 				if (c != null && !c.isEmpty()) {
 					for (Iterator<String> cit = c.iterator(); cit.hasNext();) {
@@ -617,9 +625,9 @@ public final class ShowSecurityItems extends ActionBase {
 				aes.setCdataValue("No authEntry found");
 			} else {
 				Collections.sort(entries);
-				Iterator iter = entries.iterator();
+				Iterator<String> iter = entries.iterator();
 				while (iter.hasNext()) {
-					String alias = (String) iter.next();
+					String alias = iter.next();
 					CredentialFactory cf = new CredentialFactory(alias, null, null);
 					XmlBuilder ae = new XmlBuilder("entry");
 					aes.addSubElement(ae);
@@ -628,8 +636,7 @@ public final class ShowSecurityItems extends ActionBase {
 					String passWord;
 					try {
 						userName = cf.getUsername();
-						passWord = StringUtils.repeat("*", cf.getPassword().length());
-		
+						passWord = Misc.hide(cf.getPassword(), (request.isUserInRole("IbisDataAdmin") ? 1 : 0));
 					} catch (Exception e) {
 						userName = "*** ERROR ***";
 						passWord = "*** ERROR ***";
@@ -639,13 +646,14 @@ public final class ShowSecurityItems extends ActionBase {
 				}
 			}
 		} catch (Exception e) {
+			log.warn("error retrieving authentication entries", e);
 			aes.addAttribute("error", "true");
 			aes.setCdataValue(e.getMessage());
 		}
 		securityItems.addSubElement(aes);
 	}
-
-	private void addServerProps(XmlBuilder securityItems) {
+	
+	private void addConfServerProps(XmlBuilder securityItems) {
 		XmlBuilder serverProps = new XmlBuilder("serverProps");
 		try {
 			String confSrvString = Misc.getConfigurationServer();
@@ -661,6 +669,7 @@ public final class ShowSecurityItems extends ActionBase {
 				transactionService.addAttribute("maximumTransactionTimeout", maximumTransactionTimeout);
 			}
 		} catch (Exception e) {
+			log.warn("error retrieving configuration server properties", e);
 			serverProps.addAttribute("error", "true");
 			serverProps.setCdataValue(e.getMessage());
 		}

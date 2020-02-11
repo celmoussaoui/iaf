@@ -57,7 +57,7 @@ import org.springframework.jdbc.core.RowMapper;
  * @author Jaco de Groot
  */
 public class Storage extends JdbcFacade implements nl.nn.testtool.storage.CrudStorage {
-	private static final Logger log = LogUtil.getLogger(Storage.class); // Overwrites log of JdbcFacade
+	private static final Logger log = LogUtil.getLogger(Storage.class); // Overwrites log of JdbcFacade (using nl.nn.testtool.util.LogUtil instead of nl.nn.adapterframework.util.LogUtil)
 	private static final String TIMESTAMP_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 	private static final String DELETE_ADAPTER = "DeleteFromExceptionLog";
 	private String name;
@@ -150,7 +150,11 @@ public class Storage extends JdbcFacade implements nl.nn.testtool.storage.CrudSt
 
 	public int getSize() throws StorageException {
 		try {
-			return jdbcTemplate.queryForInt("select count(*) from " + table);
+			/* queryForInt() deprecated since version Spring 3.2.x
+			 * https://www.mkyong.com/spring/jdbctemplate-queryforint-is-deprecated/
+			 * return jdbcTemplate.queryForInt("select count(*) from " + table);
+			 */
+			return jdbcTemplate.queryForObject("select count(*) from " + table, Integer.class);			
 		} catch(DataAccessException e){
 			throw new StorageException("Could not read size", e);
 		}
@@ -567,7 +571,8 @@ public class Storage extends JdbcFacade implements nl.nn.testtool.storage.CrudSt
 			IAdapter adapter = ibisManager.getRegisteredAdapter(DELETE_ADAPTER);
 			if (adapter != null) {
 				IPipeLineSession pipeLineSession = new PipeLineSessionBase();
-				pipeLineSession.put("principal", securityContext.getUserPrincipal());
+				if(securityContext.getUserPrincipal() != null)
+					pipeLineSession.put("principal", securityContext.getUserPrincipal().getName());
 				PipeLineResult processResult = adapter.processMessage(TestTool.getCorrelationId(), message, pipeLineSession);
 				if (!(processResult.getState().equalsIgnoreCase("success"))) {
 					errorMessage = "Delete failed (see logging for more details)";

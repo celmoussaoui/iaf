@@ -1,5 +1,5 @@
 /*
-Copyright 2017 - 2018 Integration Partners B.V.
+Copyright 2017-2019 Integration Partners B.V.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,23 +16,27 @@ limitations under the License.
 package nl.nn.adapterframework.http.rest;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeLineSessionBase;
 import nl.nn.adapterframework.http.HttpSecurityHandler;
+import nl.nn.adapterframework.http.HttpServletBase;
 import nl.nn.adapterframework.http.rest.ApiDispatchConfig;
+import nl.nn.adapterframework.http.rest.ApiListener.AuthenticationMethods;
 import nl.nn.adapterframework.http.rest.ApiServiceDispatcher;
+import nl.nn.adapterframework.lifecycle.IbisInitializer;
 import nl.nn.adapterframework.util.AppConstants;
 import nl.nn.adapterframework.util.LogUtil;
 import nl.nn.adapterframework.util.Misc;
+import nl.nn.adapterframework.util.XmlBuilder;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -40,9 +44,18 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
-public class ApiListenerServlet extends HttpServlet {
+/**
+ * 
+ * @author Niels Meijer
+ *
+ */
+@IbisInitializer
+public class ApiListenerServlet extends HttpServletBase {
 
 	private static final long serialVersionUID = 1L;
+
+	private final String CHARSET="UTF-8";
+	private List<String> IGNORE_HEADERS = Arrays.asList("connection", "transfer-encoding", "content-type", "authorization");
 
 	protected Logger log = LogUtil.getLogger(this);
 	private ApiServiceDispatcher dispatcher = null;
@@ -51,6 +64,7 @@ public class ApiListenerServlet extends HttpServlet {
 	private String CorsAllowOrigin = AppConstants.getInstance().getString("api.auth.cors.allowOrigin", "*"); //Defaults to everything
 	private String CorsExposeHeaders = AppConstants.getInstance().getString("api.auth.cors.exposeHeaders", "Allow, ETag, Content-Disposition");
 
+	@Override
 	public void init() throws ServletException {
 		if (dispatcher == null) {
 			dispatcher = ApiServiceDispatcher.getInstance();
@@ -61,6 +75,7 @@ public class ApiListenerServlet extends HttpServlet {
 		super.init();
 	}
 
+	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		/**
@@ -82,7 +97,7 @@ public class ApiListenerServlet extends HttpServlet {
 				log.warn("Aborting request with status [400], empty uri");
 				return;
 			}
-			
+
 			if(uri.startsWith("/"))
 				uri = uri.substring(1);
 			if(uri.endsWith("/"))
@@ -139,23 +154,39 @@ public class ApiListenerServlet extends HttpServlet {
 			 */
 			ApiPrincipal userPrincipal = null;
 
-			if(listener.getAuthenticationMethod() != null) {
-
+			if(!AuthenticationMethods.NONE.equals(listener.getAuthenticationMethod())) {
 				String authorizationToken = null;
 				Cookie authorizationCookie = null;
-				if(listener.getAuthenticationMethod().equals("COOKIE")) {
 
+				switch (listener.getAuthenticationMethod()) {
+				case COOKIE:
 					Cookie[] cookies = request.getCookies();
-					for (Cookie cookie : cookies) {
-						if(cookie.getName().equals("authenticationToken")) {
-							authorizationToken = cookie.getValue();
-							authorizationCookie = cookie;
-							authorizationCookie.setPath("/");
+					if(cookies != null) {
+						for (Cookie cookie : cookies) {
+							if("authenticationToken".equals(cookie.getName())) {
+								authorizationToken = cookie.getValue();
+								authorizationCookie = cookie;
+								authorizationCookie.setPath("/");
+							}
 						}
 					}
-				}
-				else if(listener.getAuthenticationMethod().equals("HEADER")) {
+					break;
+				case HEADER:
 					authorizationToken = request.getHeader("Authorization");
+					break;
+				case AUTHROLE:
+					List<String> roles = listener.getAuthenticationRoles();
+					if(roles != null) {
+						for (String role : roles) {
+							if(request.isUserInRole(role)) {
+								userPrincipal = new ApiPrincipal(); //Create a dummy user
+								break;
+							}
+						}
+					}
+					break;
+				default:
+					break;
 				}
 
 				if(authorizationToken != null && cache.containsKey(authorizationToken))
@@ -177,13 +208,18 @@ public class ApiListenerServlet extends HttpServlet {
 					authorizationCookie.setMaxAge(authTTL);
 					response.addCookie(authorizationCookie);
 				}
-				userPrincipal.updateExpiry();
-				userPrincipal.setToken(authorizationToken);
-				cache.put(authorizationToken, userPrincipal, authTTL);
-				messageContext.put("authorizationToken", authorizationToken);
+
+				if(userPrincipal != null && authorizationToken != null) {
+					userPrincipal.updateExpiry();
+					userPrincipal.setToken(authorizationToken);
+					cache.put(authorizationToken, userPrincipal, authTTL);
+					messageContext.put("authorizationToken", authorizationToken);
+				}
 			}
+			//Remove this? it's now available as header value
 			messageContext.put("remoteAddr", request.getRemoteAddr());
-			messageContext.put(IPipeLineSession.API_PRINCIPAL_KEY, userPrincipal);
+			if(userPrincipal != null)
+				messageContext.put(IPipeLineSession.API_PRINCIPAL_KEY, userPrincipal);
 			messageContext.put("uri", uri);
 
 			/**
@@ -243,13 +279,16 @@ public class ApiListenerServlet extends HttpServlet {
 			int uriIdentifier = 0;
 			for (int i = 0; i < patternSegments.length; i++) {
 				String segment = patternSegments[i];
-				if(segment.startsWith("{") && segment.endsWith("}")) {
-					String name;
-					if(segment.equals("*"))
-						name = "uriIdentifier_"+uriIdentifier;
-					else
-						name = segment.substring(1, segment.length()-1);
+				String name = null;
 
+				if("*".equals(segment)) {
+					name = "uriIdentifier_"+uriIdentifier;
+				}
+				else if(segment.startsWith("{") && segment.endsWith("}")) {
+					name = segment.substring(1, segment.length()-1);
+				}
+
+				if(name != null) {
 					uriIdentifier++;
 					log.trace("setting uriSegment ["+name+"] to ["+uriSegments[i]+"]");
 					messageContext.put(name, uriSegments[i]);
@@ -259,9 +298,9 @@ public class ApiListenerServlet extends HttpServlet {
 			/**
 			 * Map queryParameters into messageContext
 			 */
-			Enumeration<?> paramnames = request.getParameterNames();
+			Enumeration<String> paramnames = request.getParameterNames();
 			while (paramnames.hasMoreElements()) {
-				String paramname = (String) paramnames.nextElement();
+				String paramname = paramnames.nextElement();
 				String paramvalue = request.getParameter(paramname);
 
 				log.trace("setting queryParameter ["+paramname+"] to ["+paramvalue+"]");
@@ -269,30 +308,93 @@ public class ApiListenerServlet extends HttpServlet {
 			}
 
 			/**
+			 * Map headers into messageContext
+			 */
+			Enumeration<String> headers = request.getHeaderNames();
+			XmlBuilder headersXml = new XmlBuilder("headers");
+			while (headers.hasMoreElements()) {
+				String headerName = headers.nextElement().toLowerCase();
+				if(IGNORE_HEADERS.contains(headerName))
+					continue;
+
+				String headerValue = request.getHeader(headerName);
+				try {
+					XmlBuilder headerXml = new XmlBuilder("header");
+					headerXml.addAttribute("name", headerName);
+					headerXml.setValue(headerValue);
+					headersXml.addSubElement(headerXml);
+				}
+				catch (Throwable t) {
+					log.info("unable to convert header to xml name["+headerName+"] value["+headerValue+"]");
+				}
+			}
+			messageContext.put("headers", headersXml.toXML());
+
+			/**
 			 * Map multipart parts into messageContext
 			 */
+			String body = "";
 			if (ServletFileUpload.isMultipartContent(request)) {
 				DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();
 				ServletFileUpload servletFileUpload = new ServletFileUpload(diskFileItemFactory);
+				servletFileUpload.setHeaderEncoding(CHARSET);
 				List<FileItem> items = servletFileUpload.parseRequest(request);
+				XmlBuilder attachments = new XmlBuilder("parts");
+				int i = 0;
+				String multipartBodyName = listener.getMultipartBodyName();
 				for (FileItem item : items) {
+					String fieldName = item.getFieldName();
+					//First part -> pipeline input when multipartBodyName=null
+					if((i == 0 && multipartBodyName == null) || fieldName.equalsIgnoreCase(multipartBodyName)) {
+						//TODO this is possible because it's been read from disk multiple times, ideally you want to stream it directly!
+						body = Misc.streamToString(item.getInputStream(),"\n",false);
+					}
+
+					XmlBuilder attachment = new XmlBuilder("part");
+					attachment.addAttribute("name", fieldName);
 					if (item.isFormField()) {
 						// Process regular form field (input type="text|radio|checkbox|etc", select, etc).
-						String fieldName = item.getFieldName();
 						String fieldValue = item.getString();
 						log.trace("setting multipart formField ["+fieldName+"] to ["+fieldValue+"]");
 						messageContext.put(fieldName, fieldValue);
+						attachment.addAttribute("type", "text");
+						attachment.addAttribute("value", fieldValue);
 					} else {
 						// Process form file field (input type="file").
-						String fieldName = item.getFieldName();
 						String fieldNameName = fieldName + "Name";
 						String fileName = FilenameUtils.getName(item.getName());
 						log.trace("setting multipart formFile ["+fieldNameName+"] to ["+fileName+"]");
 						messageContext.put(fieldNameName, fileName);
 						log.trace("setting parameter ["+fieldName+"] to input stream of file ["+fileName+"]");
 						messageContext.put(fieldName, item.getInputStream());
+
+						attachment.addAttribute("type", "file");
+						attachment.addAttribute("filename", fileName);
+						attachment.addAttribute("size", item.getSize());
+						attachment.addAttribute("sessionKey", fieldName);
+						String contentType = item.getContentType();
+						if(contentType != null) {
+							String mimeType = contentType;
+							int semicolon = contentType.indexOf(";");
+							if(semicolon >= 0) {
+								mimeType = contentType.substring(0, semicolon);
+								String mightContainCharSet = contentType.substring(semicolon+1).trim();
+								if(mightContainCharSet.contains("charset=")) {
+									String charSet = mightContainCharSet.substring(mightContainCharSet.indexOf("charset=")+8);
+									attachment.addAttribute("charSet", charSet);
+								}
+							}
+							else {
+								mimeType = contentType;
+							}
+							attachment.addAttribute("mimeType", mimeType);
+						}
 					}
+					attachments.addSubElement(attachment);
+
+					i++;
 				}
+				messageContext.put("multipartAttachments", attachments.toXML());
 			}
 
 			/**
@@ -308,11 +410,10 @@ public class ApiListenerServlet extends HttpServlet {
 			/**
 			 * Process the request through the pipeline
 			 */
-
-			String body = "";
 			if (!ServletFileUpload.isMultipartContent(request)) {
-				body=Misc.streamToString(request.getInputStream(),"\n",false);
+				body = Misc.streamToString(request.getInputStream(),"\n",false);
 			}
+			//TODO: String correlationId = request.getHeader("message-id");
 			String result = listener.processRequest(null, body, messageContext);
 
 			/**
@@ -321,7 +422,7 @@ public class ApiListenerServlet extends HttpServlet {
 			if(messageContext.get("updateEtag", true)) {
 				log.debug("calculating etags over processed result");
 				String cleanPattern = listener.getCleanPattern();
-				if(result != null && method.equals("GET")) {
+				if(result != null && method.equals("GET") && cleanPattern != null) {
 					String eTag = ApiCacheManager.buildEtag(cleanPattern, result.hashCode());
 					log.debug("adding/overwriting etag with key["+etagCacheKey+"] value["+eTag+"]");
 					cache.put(etagCacheKey, eTag);
@@ -345,7 +446,7 @@ public class ApiListenerServlet extends HttpServlet {
 			 */
 			response.addHeader("Allow", (String) messageContext.get("allowedMethods"));
 
-			String contentType = listener.getContentType() + "; charset=utf-8";
+			String contentType = listener.getContentType() + ";charset="+CHARSET;
 			if(listener.getProduces().equals("ANY")) {
 				contentType = messageContext.get("contentType", contentType);
 			}
@@ -376,5 +477,10 @@ public class ApiListenerServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 		}
+	}
+
+	@Override
+	public String getUrlMapping() {
+		return "/api/*";
 	}
 }

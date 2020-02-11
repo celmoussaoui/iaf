@@ -1,5 +1,5 @@
 /*
-   Copyright 2013, 2017 Nationale-Nederlanden
+   Copyright 2019 Integration Partners
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,110 +15,38 @@
 */
 package nl.nn.adapterframework.pipes;
 
-import java.io.StringReader;
-import java.io.StringWriter;
-
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.XMLReader;
-
-import nl.nn.adapterframework.core.IPipeLineSession;
-import nl.nn.adapterframework.core.SenderException;
-import nl.nn.adapterframework.util.DomBuilderException;
-import nl.nn.adapterframework.util.JsonXmlReader;
-import nl.nn.adapterframework.util.XmlJsonWriter;
-import nl.nn.adapterframework.util.XmlUtils;
+import nl.nn.adapterframework.doc.IbisDocRef;
+import nl.nn.adapterframework.senders.JsonXsltSender;
+import nl.nn.adapterframework.senders.XsltSender;
 
 /**
- * Perform an XSLT transformation with a specified stylesheet on a JSON input, yielding JSON.
+ * Perform an XSLT transformation with a specified stylesheet on a JSON input, yielding JSON, XML or text.
+ * JSON input is transformed into XML map, array, string, integer and boolean elements, in the namespace http://www.w3.org/2013/XSL/json.
+ * The XSLT stylesheet or XPathExpression operates on these element.
+ * 
+ * @see  <a href="https://www.xml.com/articles/2017/02/14/why-you-should-be-using-xslt-30/">https://www.xml.com/articles/2017/02/14/why-you-should-be-using-xslt-30/</a>
  *
- * <tr><th>nested elements</th><th>description</th></tr>
- * <tr><td>{@link nl.nn.adapterframework.parameters.Parameter param}</td><td>any parameters defined on the pipe will be applied to the created transformer</td></tr>
- * </table>
- * </p>
- * <p><b>Exits:</b>
- * <table border="1">
- * <tr><th>state</th><th>condition</th></tr>
- * <tr><td>"success"</td><td>default</td></tr>
- * <tr><td><i>{@link #setForwardName(String) forwardName}</i></td><td>if specified</td></tr>
- * </table>
- * </p>
  * @author Gerrit van Brakel
  */
 
 public class JsonXsltPipe extends XsltPipe {
 
-	{
-		setXslt2(true);
-	}
-
-	private String jsonToXml(String json) throws TransformerException {
-		XMLReader reader=new JsonXmlReader();
-		Source source=new SAXSource(reader, new InputSource(new StringReader(json)));
-		return XmlUtils.source2String(source, false);
-	}
-
-	private String xml2Json(String xml) throws TransformerException, DomBuilderException {
-
-		Source source=XmlUtils.stringToSourceForSingleUse(xml);
-        SAXResult result = new SAXResult();
-		XmlJsonWriter xjw = new XmlJsonWriter();
-		result.setHandler(xjw);
-        TransformerFactory tf = XmlUtils.getTransformerFactory(0);
-        Transformer transformer = tf.newTransformer();
-        transformer.transform(source, result);
-		return xjw.toString();
-
-	}
-
-//	private Node jsonToDom(String json) throws TransformerException, DomBuilderException {
-//		XMLReader reader=new JsonXmlReader();
-//		Source source=new SAXSource(reader, new InputSource(new StringReader(json)));
-//        DOMResult result = new DOMResult();
-//        TransformerFactory tf = XmlUtils.getTransformerFactory(true);
-//        Transformer transformer = tf.newTransformer();
-//        transformer.transform(source, result);
-//        return result.getNode();
-//	}
+	private final String JSONXSLTSENDER = "nl.nn.adapterframework.senders.JsonXsltSender";
 
 	@Override
-	protected String getInputXml(Object input, IPipeLineSession session) throws TransformerException {
-		//TODO: GvB: use SAXSource for primary transformation, instead of first converting to XML String. However, there appears to be a problem with that currently.
-		return jsonToXml(super.getInputXml(input, session));
-//		return super.getInput(xml, session);
+	protected XsltSender createXsltSender() {
+		return new JsonXsltSender();
+	}
 
-//		Node node = jsonToDom(input);
-////		System.out.println("node: "+ToStringBuilder.reflectionToString(node));
-//		Source source=new DOMSource(node);
-//		return new ParameterResolutionContext(source, session, isNamespaceAware(), isXslt2());
-		
-//		XMLReader reader=new JsonXmlReader();
-//		Source source=new SAXSource(reader, new InputSource(new StringReader(input)));
-//		return new ParameterResolutionContext(source, session, isNamespaceAware(), isXslt2());
+	@IbisDocRef({"1", JSONXSLTSENDER})
+	public void setJsonResult(boolean jsonResult) {
+		((JsonXsltSender)getSender()).setJsonResult(jsonResult);
 	}
-	
+
 	@Override
-	protected String transform(Object input, IPipeLineSession session) throws SenderException, TransformerException {
-		String xmlResult=super.transform(input, session);
-		try {
-			return xml2Json(xmlResult);
-		} catch (DomBuilderException e) {
-			throw new TransformerException(e);
-		}
+	@IbisDocRef({"2", JSONXSLTSENDER})
+	public void setNamespaceDefs(String namespaceDefs) {
+		super.setNamespaceDefs(namespaceDefs);
 	}
-//	protected String transform(TransformerPool tp, Source source, Map parametervalues) throws TransformerException, IOException {
-//		SAXResult result = new SAXResult();
-//		XmlJsonWriter xjw = new XmlJsonWriter();
-//		result.setHandler(xjw);
-//		tp.transform(source, result, parametervalues);
-//		return xjw.toString();
-//	}
-	
+
 }

@@ -1,5 +1,5 @@
 /*
-Copyright 2017 Integration Partners B.V.
+Copyright 2017 - 2019 Integration Partners B.V.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -99,6 +99,7 @@ public class ApiEhcache implements IApiCache {
 		cache = cacheManager.addCache(configCache);
 	}
 
+	@Override
 	public void destroy() {
 		if (isDiskPersistent()) {
 			log.debug("cache ["+KEY_CACHE_NAME+"] flushing to disk");
@@ -114,12 +115,23 @@ public class ApiEhcache implements IApiCache {
 		cache=null;
 	}
 
+	/**
+	 * The cache can only check if a key exists if it's state is ALIVE
+	 */
+	private boolean isCacheAlive() {
+		if(cache == null)
+			return false;
 
+		return Status.STATUS_ALIVE.equals(cache.getStatus());
+	}
+
+	/**
+	 * Workaround to avoid NPE after a full reload (/adapterHandlerAsAdmin.do?action=fullreload)
+	 * get() and isKeyInCache() are not synchronized methods and do not contain any state checking.
+	 */
+	@Override
 	public Object get(String key) {
-		// Workaround to avoid NPE after a full reload (/adapterHandlerAsAdmin.do?action=fullreload)
-		// get() and isKeyInCache() are not synchronized methods and do not contain any state checking.
-		// The cache can only check if a key exists if it's state is ALIVE.
-		if(!cache.getStatus().equals(Status.STATUS_ALIVE))
+		if(!isCacheAlive())
 			return null;
 
 		Element element = cache.get(key);
@@ -129,55 +141,75 @@ public class ApiEhcache implements IApiCache {
 		return element.getObjectValue();
 	}
 
+	@Override
 	public void put(String key, Object value) {
+		if(!isCacheAlive())
+			return;
+
 		Element element = new Element(key,value);
 		cache.put(element);
 	}
 
+	@Override
 	public void put(String key, Object value, int ttl) {
+		if(!isCacheAlive())
+			return;
+
 		Element element = new Element(key,value);
 		element.setTimeToLive(ttl);
 		cache.put(element);
 	}
 
+	@Override
 	public boolean remove(String key) {
+		if(!isCacheAlive())
+			return false;
+
 		return cache.remove(key);
 	}
 
+	@Override
 	public boolean containsKey(String key) {
 		return (this.get(key) != null);
 	}
 
 	public void flush() {
+		if(!isCacheAlive())
+			return;
+
 		cache.flush();
 	}
 
+	@Override
 	public void clear() {
+		if(!isCacheAlive())
+			return;
+
 		cache.removeAll();
 	}
 
-	public boolean isEternal() {
+	private boolean isEternal() {
 		return eternal;
 	}
 	public void setEternal(boolean eternal) {
 		this.eternal = eternal;
 	}
 
-	public boolean isOverflowToDisk() {
+	private boolean isOverflowToDisk() {
 		return overflowToDisk;
 	}
 	public void setOverflowToDisk(boolean overflowToDisk) {
 		this.overflowToDisk = overflowToDisk;
 	}
 
-	public int getMaxElementsOnDisk() {
+	private int getMaxElementsOnDisk() {
 		return maxElementsOnDisk;
 	}
 	public void setMaxElementsOnDisk(int maxElementsOnDisk) {
 		this.maxElementsOnDisk = maxElementsOnDisk;
 	}
 
-	public boolean isDiskPersistent() {
+	private boolean isDiskPersistent() {
 		return diskPersistent;
 	}
 	public void setDiskPersistent(boolean diskPersistent) {

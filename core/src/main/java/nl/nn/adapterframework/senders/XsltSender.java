@@ -15,25 +15,45 @@
 */
 package nl.nn.adapterframework.senders;
 
-import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
+import javax.xml.parsers.ParserConfigurationException;
 
-import nl.nn.adapterframework.doc.IbisDoc;
+import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.lang.StringUtils;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLFilterImpl;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
-import nl.nn.adapterframework.core.PipeRunException;
+import nl.nn.adapterframework.configuration.ConfigurationWarnings;
+import nl.nn.adapterframework.core.IPipeLineSession;
+import nl.nn.adapterframework.core.PipeRunResult;
 import nl.nn.adapterframework.core.SenderException;
-import nl.nn.adapterframework.core.SenderWithParametersBase;
+import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.parameters.Parameter;
 import nl.nn.adapterframework.parameters.ParameterList;
 import nl.nn.adapterframework.parameters.ParameterResolutionContext;
-import nl.nn.adapterframework.util.DomBuilderException;
+import nl.nn.adapterframework.stream.IOutputStreamingSupport;
+import nl.nn.adapterframework.stream.IThreadCreator;
+import nl.nn.adapterframework.stream.Message;
+import nl.nn.adapterframework.stream.MessageOutputStream;
+import nl.nn.adapterframework.stream.MessageOutputStreamCap;
+import nl.nn.adapterframework.stream.StreamingException;
+import nl.nn.adapterframework.stream.StreamingSenderBase;
+import nl.nn.adapterframework.stream.ThreadLifeCycleEventListener;
+import nl.nn.adapterframework.util.AppConstants;
+import nl.nn.adapterframework.util.ClassUtils;
 import nl.nn.adapterframework.util.TransformerPool;
 import nl.nn.adapterframework.util.XmlUtils;
+import nl.nn.adapterframework.xml.NamespaceRemovingFilter;
+import nl.nn.adapterframework.xml.PrettyPrintFilter;
+import nl.nn.adapterframework.xml.SkipEmptyTagsFilter;
+import nl.nn.adapterframework.xml.TransformerFilter;
+import nl.nn.adapterframework.xml.XmlWriter;
 
 /**
  * Perform an XSLT transformation with a specified stylesheet or XPath-expression.
@@ -46,42 +66,55 @@ import nl.nn.adapterframework.util.XmlUtils;
  * @author  Gerrit van Brakel
  * @since   4.9
  */
-public class XsltSender extends SenderWithParametersBase {
+public class XsltSender extends StreamingSenderBase implements IThreadCreator {
 
+	private String styleSheetName;
+	private String styleSheetNameSessionKey=null;
 	private String xpathExpression=null;
 	private String namespaceDefs = null; 
-	private String outputType="text";
-	private String styleSheetName;
-	private boolean omitXmlDeclaration=true;
-	private boolean indentXml=true;
-	private boolean skipEmptyTags=false;
+	private String outputType=null;
+	private Boolean omitXmlDeclaration;
+	private boolean indentXml=false; // some existing ibises expect default for indent to be false 
 	private boolean removeNamespaces=false;
-	private boolean xslt2=false;
+	private boolean skipEmptyTags=false;
+	private int xsltVersion=0; // set to 0 for auto detect.
 	private boolean namespaceAware=XmlUtils.isNamespaceAwareByDefault();
-
-	private TransformerPool transformerPool;
-	private TransformerPool transformerPoolSkipEmptyTags;
-	private TransformerPool transformerPoolRemoveNamespaces;
-
 	
+	private TransformerPool transformerPool;
+	
+	private Map<String, TransformerPool> dynamicTransformerPoolMap;
+	private int transformerPoolMapSize = 100;
+
+	protected ThreadLifeCycleEventListener<Object> threadLifeCycleEventListener;
+	private boolean streamingXslt;
+
+
 	/**
 	 * The <code>configure()</code> method instantiates a transformer for the specified
 	 * XSL. If the stylesheetname cannot be accessed, a ConfigurationException is thrown.
-	 * @throws ConfigurationException
 	 */
 	@Override
 	public void configure() throws ConfigurationException {
 		super.configure();
-	
-		transformerPool = TransformerPool.configureTransformer0(getLogPrefix(), getClassLoader(), getNamespaceDefs(), getXpathExpression(), getStyleSheetName(), getOutputType(), !isOmitXmlDeclaration(), getParameterList(), isXslt2()?2:1);
-		if (isSkipEmptyTags()) {
-			transformerPoolSkipEmptyTags = XmlUtils.getSkipEmptyTagsTransformerPool(isOmitXmlDeclaration(),isIndentXml());
+		
+		streamingXslt = AppConstants.getInstance(getConfigurationClassLoader()).getBoolean("xslt.streaming.default", false);
+		dynamicTransformerPoolMap = Collections.synchronizedMap(new LRUMap(transformerPoolMapSize));
+		
+		if(StringUtils.isNotEmpty(getXpathExpression()) && getOutputType()==null) {
+			setOutputType("text");
 		}
-		if (isRemoveNamespaces()) {
-			transformerPoolRemoveNamespaces = XmlUtils.getRemoveNamespacesTransformerPool(isOmitXmlDeclaration(),isIndentXml());
+		if(StringUtils.isNotEmpty(getStyleSheetName()) || StringUtils.isNotEmpty(getXpathExpression())) {
+			Boolean omitXmlDeclaration = getOmitXmlDeclaration();
+			if (omitXmlDeclaration==null) {
+				omitXmlDeclaration=true;
+			}
+			transformerPool = TransformerPool.configureTransformer0(getLogPrefix(), getConfigurationClassLoader(), getNamespaceDefs(), getXpathExpression(), getStyleSheetName(), getOutputType(), !omitXmlDeclaration, getParameterList(), getXsltVersion());
+		}
+		else if(StringUtils.isEmpty(getStyleSheetNameSessionKey())) {
+			throw new ConfigurationException(getLogPrefix()+" one of xpathExpression, styleSheetName or styleSheetNameSessionKey must be specified");
 		}
 
-		if (isXslt2()) {
+		if (getXsltVersion()>=2) {
 			ParameterList parameterList = getParameterList();
 			if (parameterList!=null) {
 				for (int i=0; i<parameterList.size(); i++) {
@@ -97,6 +130,7 @@ public class XsltSender extends SenderWithParametersBase {
 	@Override
 	public void open() throws SenderException {
 		super.open();
+
 		if (transformerPool!=null) {
 			try {
 				transformerPool.open();
@@ -104,102 +138,166 @@ public class XsltSender extends SenderWithParametersBase {
 				throw new SenderException(getLogPrefix()+"cannot start TransformerPool", e);
 			}
 		}
-		if (transformerPoolSkipEmptyTags!=null) {
-			try {
-				transformerPoolSkipEmptyTags.open();
-			} catch (Exception e) {
-				throw new SenderException(getLogPrefix()+"cannot start TransformerPool SkipEmptyTags", e);
-			}
-		}
-		if (transformerPoolRemoveNamespaces!=null) {
-			try {
-				transformerPoolRemoveNamespaces.open();
-			} catch (Exception e) {
-				throw new SenderException(getLogPrefix()+"cannot start TransformerPool RemoveNamespaces", e);
-			}
-		}
 	}
 
 	@Override
 	public void close() throws SenderException {
 		super.close();
+		
 		if (transformerPool!=null) {
 			transformerPool.close();
 		}
-		if (transformerPoolSkipEmptyTags!=null) {
-			transformerPoolSkipEmptyTags.close();
-		}
-		if (transformerPoolRemoveNamespaces!=null) {
-			transformerPoolRemoveNamespaces.close();
+		
+		if (!dynamicTransformerPoolMap.isEmpty()) {
+			for(TransformerPool tp : dynamicTransformerPoolMap.values()) {
+				tp.close();
+			}
 		}
 	}
 
-	protected Source adaptInput(String input, ParameterResolutionContext prc) throws PipeRunException, DomBuilderException, TransformerException, IOException {
+
+	protected ContentHandler filterInput(ContentHandler input, ParameterResolutionContext prc) {
 		if (isRemoveNamespaces()) {
-			log.debug(getLogPrefix()+ " removing namespaces from input message");
-			input = transformerPoolRemoveNamespaces.transform(prc.getInputSource(isNamespaceAware()), null); 
-			log.debug(getLogPrefix()+ " output message after removing namespaces [" + input + "]");
-			return XmlUtils.stringToSourceForSingleUse(input, isNamespaceAware());
+			log.debug(getLogPrefix()+ " providing filter to remove namespaces from input message");
+			XMLFilterImpl filter = new NamespaceRemovingFilter();
+			filter.setContentHandler(input);
+			return filter;
 		}
-		return prc.getInputSource(isNamespaceAware());
+		return input; // TODO might be necessary to do something about namespaceaware
+	}
+	
+	
+	@Override
+	public MessageOutputStream provideOutputStream(String correlationID, IPipeLineSession session, IOutputStreamingSupport nextProvider) throws StreamingException {
+		MessageOutputStream target = nextProvider==null ? null : nextProvider.provideOutputStream(correlationID, session, nextProvider);
+		if (target==null) {
+			target=new MessageOutputStreamCap(this, nextProvider);
+		}
+		ContentHandler handler = createHandler(correlationID, null, session, target);
+		return new MessageOutputStream(this, handler,target,this,threadLifeCycleEventListener,correlationID);
 	}
 
-	/**
-	 * Here the actual transforming is done. Under weblogic the transformer object becomes
-	 * corrupt when a not-well formed xml was handled. The transformer is then re-initialized
-	 * via the configure() and start() methods.
-	 */
-	@Override
-	public String sendMessage(String correlationID, String message, ParameterResolutionContext prc) throws SenderException {
-		String stringResult = null;
-		if (message==null) {
-			throw new SenderException(getLogPrefix()+"got null input");
-		}
-//		if (log.isDebugEnabled()) {
-//			log.debug(getLogPrefix()+" transforming input ["+message+"] using prc ["+prc+"]");
-//		}
+	protected ContentHandler createHandler(String correlationID, Message input, IPipeLineSession session, MessageOutputStream target) throws StreamingException {
+		ContentHandler handler = null;
 
 		try {
-			Source inputMsg=adaptInput(message, prc);
 			Map<String,Object> parametervalues = null;
+			ParameterResolutionContext prc = new ParameterResolutionContext(input, session);
 			if (paramList!=null) {
 				parametervalues = prc.getValueMap(paramList);
 			}
-//			if (log.isDebugEnabled()) {
-//				log.debug(getLogPrefix()+" transformerPool ["+transformerPool+"] transforming using prc ["+prc+"] and parameterValues ["+parametervalues+"]");
-//				log.debug(getLogPrefix()+" prc.inputsource ["+prc.getInputSource()+"]");
-//			}
-			
-			stringResult = transformerPool.transform(inputMsg, parametervalues); 
 
-			if (isSkipEmptyTags()) {
-				log.debug(getLogPrefix()+ " skipping empty tags from result [" + stringResult + "]");
-				//URL xsltSource = ClassUtils.getResourceURL( this, skipEmptyTags_xslt);
-				//Transformer transformer = XmlUtils.createTransformer(xsltSource);
-				//stringResult = XmlUtils.transformXml(transformer, stringResult);
-				stringResult = transformerPoolSkipEmptyTags.transform(XmlUtils.stringToSourceForSingleUse(stringResult, isNamespaceAware()), null); 
+			TransformerPool poolToUse = transformerPool;
+			if(StringUtils.isNotEmpty(styleSheetNameSessionKey) && prc.getSession().get(styleSheetNameSessionKey) != null) {
+				String styleSheetNameToUse = prc.getSession().get(styleSheetNameSessionKey).toString();
+			
+				if(!dynamicTransformerPoolMap.containsKey(styleSheetNameToUse)) {
+					dynamicTransformerPoolMap.put(styleSheetNameToUse, poolToUse = TransformerPool.configureTransformer(getLogPrefix(), getConfigurationClassLoader(), null, null, styleSheetNameToUse, null, true, getParameterList()));
+					poolToUse.open();
+				} else {
+					poolToUse = dynamicTransformerPoolMap.get(styleSheetNameToUse);
+				}
 			}
-//			if (log.isDebugEnabled()) {
-//				log.debug(getLogPrefix()+" transformed input ["+message+"] to ["+stringResult+"]");
-//			}
-		} 
-		catch (Exception e) {
+			
+			String outputType = getOutputType();
+			if (log.isTraceEnabled()) log.trace("Configured outputmethod ["+outputType+"]");
+			if (StringUtils.isEmpty(outputType)) {
+				outputType = poolToUse.getOutputMethod();
+				if (log.isTraceEnabled()) log.trace("Detected outputmethod ["+outputType+"]");
+			}
+			if (StringUtils.isEmpty(outputType)) {
+				outputType = "xml";
+				if (log.isTraceEnabled()) log.trace("Default outputmethod ["+outputType+"]");
+			}
+
+			Object targetStream = target.asNative();
+			
+			Boolean omitXmlDeclaration = getOmitXmlDeclaration();
+			if (targetStream instanceof ContentHandler) {
+				handler = (ContentHandler)targetStream;
+			} else {
+				XmlWriter xmlWriter = new XmlWriter(target.asWriter());
+				if (log.isTraceEnabled()) log.trace("Configured omitXmlDeclaration ["+omitXmlDeclaration+"]");
+				if ("xml".equals(outputType)) {
+					if (omitXmlDeclaration==null) {
+						omitXmlDeclaration = poolToUse.getOmitXmlDeclaration();
+						if (log.isTraceEnabled()) log.trace("Detected omitXmlDeclaration ["+omitXmlDeclaration+"]");
+						if (omitXmlDeclaration==null) {
+							omitXmlDeclaration=false;
+							if (log.isTraceEnabled()) log.trace("Default omitXmlDeclaration ["+omitXmlDeclaration+"]");
+						}
+					}
+					xmlWriter.setIncludeXmlDeclaration(!omitXmlDeclaration);
+					if (isIndentXml()) {
+						xmlWriter.setNewlineAfterXmlDeclaration(true);
+					}
+				} else {
+					xmlWriter.setTextMode(true);
+				}
+				handler = xmlWriter;
+			}
+
+			if (isIndentXml()) {
+				PrettyPrintFilter indentingFilter = new PrettyPrintFilter();
+				indentingFilter.setContentHandler(handler);
+				handler=indentingFilter;
+			}
+			if (isSkipEmptyTags()) {
+				SkipEmptyTagsFilter skipEmptyTagsFilter = new SkipEmptyTagsFilter();
+				skipEmptyTagsFilter.setContentHandler(handler);
+				handler=skipEmptyTagsFilter;
+			}
+			
+
+			TransformerFilter mainFilter = poolToUse.getTransformerFilter(this, threadLifeCycleEventListener, correlationID, streamingXslt);
+			XmlUtils.setTransformerParameters(mainFilter.getTransformer(),parametervalues);
+			mainFilter.setContentHandler(handler);
+			handler=mainFilter;
+			
+			handler=filterInput(handler, prc);
+			
+			return handler;
+		} catch (Exception e) {
 			//log.warn(getLogPrefix()+"intermediate exception logging",e);
-			throw new SenderException(getLogPrefix()+" Exception on transforming input", e);
+			throw new StreamingException(getLogPrefix()+"Exception on creating transformerHandler chain", e);
 		} 
-		return stringResult;
 	}
+	
+
+	protected XMLReader getXmlReader(ContentHandler handler) throws ParserConfigurationException, SAXException {
+		return XmlUtils.getXMLReader(true, false, handler);
+	}
+	
+
+	/*
+	 * alternative implementation of send message, that should do the same as the origial, but reuses the streaming content handler
+	 */
+	@Override
+	public PipeRunResult sendMessage(String correlationID, Message message, ParameterResolutionContext prc, IOutputStreamingSupport nextProvider) throws SenderException {
+		if (message==null) {
+			throw new SenderException(getLogPrefix()+"got null input");
+		}
+		try {
+			MessageOutputStream target = nextProvider==null ? null : nextProvider.provideOutputStream(correlationID, prc.getSession(), null);
+			try (MessageOutputStream outputStream=target!=null?target:new MessageOutputStreamCap(this, nextProvider)) {
+				ContentHandler handler = createHandler(correlationID, message, prc.getSession(), outputStream);
+				InputSource source = message.asInputSource();
+				XMLReader reader = getXmlReader(handler);
+				reader.parse(source);
+				return outputStream.getPipeRunResult();
+			}
+		} catch (Exception e) {
+			throw new SenderException(getLogPrefix()+"Exception on transforming input", e);
+		}
+	}
+	
 
 	@Override
 	public boolean isSynchronous() {
 		return true;
 	}
 
-
-	/**
-	 * Specify the stylesheet to use
-	 */
-	@IbisDoc({"stylesheet to apply to the input message", ""})
+	@IbisDoc({"1", "Location of stylesheet to apply to the input message", ""})
 	public void setStyleSheetName(String stylesheetName){
 		this.styleSheetName=stylesheetName;
 	}
@@ -207,20 +305,23 @@ public class XsltSender extends SenderWithParametersBase {
 		return styleSheetName;
 	}
 
-	/**
-	 * set the "omit xml declaration" on the transfomer. Defaults to true.
-	 * @return true or false
-	 */
-	@IbisDoc({"force the transformer generated from the xpath-expression to omit the xml declaration", "true"})
-	public void setOmitXmlDeclaration(boolean b) {
-		omitXmlDeclaration = b;
+	@IbisDoc({"2", "Session key to retrieve stylesheet location. Overrides stylesheetName or xpathExpression attribute", ""})
+	public void setStyleSheetNameSessionKey(String newSessionKey) {
+		styleSheetNameSessionKey = newSessionKey;
 	}
-	public boolean isOmitXmlDeclaration() {
-		return omitXmlDeclaration;
+	public String getStyleSheetNameSessionKey() {
+		return styleSheetNameSessionKey;
 	}
 
-
-	@IbisDoc({"alternatively: xpath-expression to create stylesheet from", ""})
+	@IbisDoc({"3", "Size of cache of stylesheets retrieved from styleSheetNameSessionKey", "100"})
+	public void setStyleSheetCacheSize(int size) {
+		transformerPoolMapSize = size;
+	}
+	public int getStyleSheetCacheSize() {
+		return transformerPoolMapSize;
+	}
+	
+	@IbisDoc({"4", "Alternatively: xpath-expression to create stylesheet from", ""})
 	public void setXpathExpression(String string) {
 		xpathExpression = string;
 	}
@@ -228,7 +329,15 @@ public class XsltSender extends SenderWithParametersBase {
 		return xpathExpression;
 	}
 
-	@IbisDoc({"namespace defintions for xpathexpression. must be in the form of a comma or space separated list of <code>prefix=namespaceuri</code>-definitions", ""})
+	@IbisDoc({"5", "For xpathExpression only: force the transformer generated from the xpath-expression to omit the xml declaration", "true"})
+	public void setOmitXmlDeclaration(boolean b) {
+		omitXmlDeclaration = b;
+	}
+	public Boolean getOmitXmlDeclaration() { // can return null too
+		return omitXmlDeclaration;
+	}
+
+	@IbisDoc({"6", "Namespace defintions for xpathExpression. Must be in the form of a comma or space separated list of <code>prefix=namespaceuri</code>-definitions. For some use other cases (NOT xpathExpression), one entry can be without a prefix, that will define the default namespace.", ""})
 	public void setNamespaceDefs(String namespaceDefs) {
 		this.namespaceDefs = namespaceDefs;
 	}
@@ -236,7 +345,7 @@ public class XsltSender extends SenderWithParametersBase {
 		return namespaceDefs;
 	}
 
-	@IbisDoc({"either 'text' or 'xml'. only valid for xpathexpression", "text"})
+	@IbisDoc({"7", "For xpathExpression only: either 'text' or 'xml'.", "text"})
 	public void setOutputType(String string) {
 		outputType = string;
 	}
@@ -244,16 +353,7 @@ public class XsltSender extends SenderWithParametersBase {
 		return outputType;
 	}
 
-
-	@IbisDoc({"when set <code>true</code> empty tags in the output are removed", "false"})
-	public void setSkipEmptyTags(boolean b) {
-		skipEmptyTags = b;
-	}
-	public boolean isSkipEmptyTags() {
-		return skipEmptyTags;
-	}
-
-	@IbisDoc({"when set <code>true</code>, result is pretty-printed. (only used when <code>skipemptytags=true</code>)", "true"})
+	@IbisDoc({"8", "when set <code>true</code>, result is pretty-printed. (only used when <code>skipemptytags=true</code>)", "true"})
 	public void setIndentXml(boolean b) {
 		indentXml = b;
 	}
@@ -261,7 +361,7 @@ public class XsltSender extends SenderWithParametersBase {
 		return indentXml;
 	}
 
-	@IbisDoc({"when set <code>true</code> namespaces (and prefixes) in the input message are removed", "false"})
+	@IbisDoc({"9", "when set <code>true</code> namespaces (and prefixes) in the input message are removed before transformation", "false"})
 	public void setRemoveNamespaces(boolean b) {
 		removeNamespaces = b;
 	}
@@ -269,20 +369,45 @@ public class XsltSender extends SenderWithParametersBase {
 		return removeNamespaces;
 	}
 
-	public boolean isXslt2() {
-		return xslt2;
+	@IbisDoc({"10", "when set <code>true</code> empty tags in the output are removed after transformation", "false"})
+	public void setSkipEmptyTags(boolean b) {
+		skipEmptyTags = b;
+	}
+	public boolean isSkipEmptyTags() {
+		return skipEmptyTags;
 	}
 
-	@IbisDoc({"when set <code>true</code> xslt processor 2.0 (net.sf.saxon) will be used, otherwise xslt processor 1.0 (org.apache.xalan)", "false"})
-	public void setXslt2(boolean b) {
-		xslt2 = b;
+	@IbisDoc({"11", "when set to <code>2</code> xslt processor 2.0 (net.sf.saxon) will be used, otherwise xslt processor 1.0 (org.apache.xalan). <code>0</code> will auto detect", "0"})
+	public void setXsltVersion(int xsltVersion) {
+		this.xsltVersion=xsltVersion;
+	}
+	public int getXsltVersion() {
+		return xsltVersion;
 	}
 
+	@IbisDoc({"12", "", "true"})
 	public void setNamespaceAware(boolean b) {
 		namespaceAware = b;
 	}
 	public boolean isNamespaceAware() {
 		return namespaceAware;
+	}
+
+	@IbisDoc({"13", "Deprecated: when set <code>true</code> xslt processor 2.0 (net.sf.saxon) will be used, otherwise xslt processor 1.0 (org.apache.xalan)", "false"})
+	/**
+	 * @deprecated Please remove setting of xslt2, it will be auto detected. Or use xsltVersion.
+	 */
+	@Deprecated
+	public void setXslt2(boolean b) {
+		ConfigurationWarnings configWarnings = ConfigurationWarnings.getInstance();
+		String msg = ClassUtils.nameOf(this) +"["+getName()+"]: the attribute 'xslt2' has been deprecated. Its value is now auto detected. If necessary, replace with a setting of xsltVersion";
+		configWarnings.add(log, msg);
+		xsltVersion=b?2:1;
+	}
+
+	@Override
+	public void setThreadLifeCycleEventListener(ThreadLifeCycleEventListener<Object> threadLifeCycleEventListener) {
+		this.threadLifeCycleEventListener=threadLifeCycleEventListener;
 	}
 
 }

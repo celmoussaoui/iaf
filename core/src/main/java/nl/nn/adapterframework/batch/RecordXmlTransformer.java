@@ -125,19 +125,8 @@ public class RecordXmlTransformer extends AbstractRecordHandler {
 		}
 	}
 
-	private ParameterList getParameterList() {
-		return parameterList;
-	}
 
-	@Override
-	public void addParameter(Parameter param) {
-		log.debug("added parameter ["+param.toString()+"]");
-		parameterList.add(param);
-	}
-
-
-
-	@IbisDoc({"roottag for the generated xml document", "record"})
+	@IbisDoc({"roottag for the generated xml document that will be send to the Sender", "record"})
 	public void setRootTag(String string) {
 		rootTag = string;
 	}
@@ -153,7 +142,7 @@ public class RecordXmlTransformer extends AbstractRecordHandler {
 		return xpathExpression;
 	}
 
-	@IbisDoc({"namespace defintions for xpathexpression. must be in the form of a comma or space separated list of <code>prefix=namespaceuri</code>-definitions", ""})
+	@IbisDoc({"namespace defintions for xpathexpression. must be in the form of a comma or space separated list of <code>prefix=namespaceuri</code>-definitions. One entry can be without a prefix, that will define the default namespace.", ""})
 	public void setNamespaceDefs(String namespaceDefs) {
 		this.namespaceDefs = namespaceDefs;
 	}

@@ -78,6 +78,7 @@ public final class ExecuteJdbcQueryExecute extends ActionBase {
 				qs.setJmsRealm(form_jmsRealm);
 				qs.setQueryType(form_queryType);
 				qs.setBlobSmartGet(true);
+				qs.setSqlDialect("");
 				qs.configure(true);
 				qs.open();
 				result = qs.sendMessage("dummy", form_query);
@@ -144,10 +145,7 @@ public final class ExecuteJdbcQueryExecute extends ActionBase {
 		return (mapping.findForward("success"));
 
 	}
-	public void StoreFormData(
-		String query,
-		String result,
-		DynaActionForm executeJdbcQueryExecuteForm) {
+	public void StoreFormData(String query, String result, DynaActionForm executeJdbcQueryExecuteForm) {
 		List jmsRealms = JmsRealmFactory.getInstance().getRegisteredRealmNamesAsList();
 		if (jmsRealms.size() == 0)
 			jmsRealms.add("no realms defined");

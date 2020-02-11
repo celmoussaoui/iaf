@@ -54,7 +54,6 @@ public class JmxUtils {
 	 * under the specified name, it is first de-registered.
 	 * @param name	the objectName
 	 * @param mbean	the modelMbean to register
-	 * @throws ConfigurationException
 	 */
 	public static void registerMBean(ObjectName name, RequiredModelMBean mbean) throws Exception {
 
@@ -91,10 +90,6 @@ public class JmxUtils {
 	
 	/**
 	 * Builds an operationInfor for getter purposes.
-	 * @param name
-	 * @param klass 
-	 * @param description
-	 * @param signature
 	 */
 	public static ModelMBeanOperationInfo buildGetterModelMBeanOperationInfo(
 		String name,
@@ -114,12 +109,6 @@ public class JmxUtils {
 	}
 	/**
 	 * Builds an AttributeInfo in a default way
-	 * @param name
-	 * @param displayName
-	 * @param description
-	 * @param deflt
-	 * @param operName
-	 * @param signature
 	 * @return the default modelMBeanAttributeInfo object
 	 */
 	public static ModelMBeanAttributeInfo buildAttributeInfo(String name, String displayName, String description, String deflt, String operName, String signature){

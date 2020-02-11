@@ -1,5 +1,5 @@
 /*
-   Copyright 2018 Integration Partners
+   Copyright 2018-2020 Integration Partners
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,20 +28,23 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
+import nl.nn.adapterframework.doc.objects.*;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.SimpleBeanDefinitionRegistry;
+import org.springframework.context.annotation.AnnotationBeanNameGenerator;
 import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.core.type.filter.RegexPatternTypeFilter;
-import org.xml.sax.Attributes;
+
+import org.springframework.util.Assert;
 import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
 import nl.nn.adapterframework.core.IPipe;
 import nl.nn.adapterframework.core.IPipeLineSession;
@@ -98,12 +101,12 @@ public class IbisDocPipe extends FixedForwardPipe {
 	}
 	private static List<String> overwriteMaxOccursToUnbounded = new ArrayList<String>();
 	static {
-		// The setSender in ParallelSenders adds senders to a list. When setSender has been renamed to addSender this
+		// The setSender in ParallelSenders adds senders to a list. When setSender  has been renamed to addSender this
 		// workaround can be removed.
 		overwriteMaxOccursToUnbounded.add("parallelSendersSender");
 	}
 	// Influence the order of elements in the XSD, this will override the alphabetic order.
-	// Instead of using the Maps below it might be a good idea to use annotations on the specified methods. 
+	// Instead of using the Maps below it might be a good idea to use annotations on the specified methods.
 	private static Map<String, Integer> sortWeightAdapter = new HashMap<String, Integer>();
 	static {
 		sortWeightAdapter.put("registerReceiver", 100);
@@ -139,11 +142,17 @@ public class IbisDocPipe extends FixedForwardPipe {
 		sortWeight.put("setOutputValidator", 30);
 		sortWeight.put("setOutputWrapper", 20);
 	}
+	private static Map<String, String> copyPropterties = new HashMap<String, String>();
+	static {
+		// FileSender extends FileHandler which FilePipe cannot because it already extends FixedForwardPipe.
+		// Might be a good idea to specify this with an annotation.
+		copyPropterties.put("FilePipe", "FileSender");
+	}
 	// Cache groups for better performance, don't use it directly, use getGroups()
 	private static Map<String, TreeSet<IbisBean>> cachedGroups;
 	private static Map<String, String> errors = new HashMap<String, String>();
 
-	private static synchronized Map<String, TreeSet<IbisBean>> getGroups() {
+	static synchronized Map<String, TreeSet<IbisBean>> getGroups() {
 		if (cachedGroups == null) {
 			Map<String, TreeSet<IbisBean>> groups = new LinkedHashMap<String, TreeSet<IbisBean>>();
 			addIbisBeans("Listeners", getClass("nl.nn.adapterframework.core.IListener"), groups);
@@ -202,14 +211,19 @@ public class IbisDocPipe extends FixedForwardPipe {
 		groups.put(group, ibisBeans);
 	}
 
-	private static void addIbisBean(String group, String beanName, String nameLastPartToReplaceWithGroupName,
+	private static void addIbisBean(String group, String fqBeanName, String nameLastPartToReplaceWithGroupName,
 			Class<?> clazz, TreeSet<IbisBean> ibisBeans) {
+		int i = fqBeanName.lastIndexOf(".");
+		String beanName = fqBeanName;
+		if(i != -1) {
+			beanName = fqBeanName.substring(i+1);
+		}
 		if (nameLastPartToReplaceWithGroupName != null) {
 			if (beanName.endsWith(nameLastPartToReplaceWithGroupName)) {
 				ibisBeans.add(new IbisBean(replaceNameLastPartWithGroupName(group, beanName, nameLastPartToReplaceWithGroupName), clazz));
 			}
 		} else {
-			// Normalize listeners to end with Listener, pipes to end with Pipe and senders to end with Sender 
+			// Normalize listeners to end with Listener, pipes to end with Pipe and senders to end with Sender
 			String suffix = group.substring(0, 1).toUpperCase() + group.substring(1, group.length() - 1);
 			if (!beanName.endsWith(suffix)) {
 				beanName = beanName + suffix;
@@ -228,6 +242,15 @@ public class IbisDocPipe extends FixedForwardPipe {
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(beanDefinitionRegistry);
 		scanner.setIncludeAnnotationConfig(false);
 		scanner.addIncludeFilter(new AssignableTypeFilter(interfaze));
+		BeanNameGenerator beanNameGenerator = new AnnotationBeanNameGenerator() {
+			@Override
+			protected String buildDefaultBeanName(BeanDefinition definition) {
+				String beanClassName = definition.getBeanClassName();
+				Assert.state(beanClassName != null, "No bean class name set");
+				return beanClassName;
+			}
+		};
+		scanner.setBeanNameGenerator(beanNameGenerator);
 		for (String excludeFilter : excludeFilters) {
 			addExcludeFilter(scanner, excludeFilter);
 		}
@@ -237,7 +260,7 @@ public class IbisDocPipe extends FixedForwardPipe {
 		while (!success && tryCount < maxTries) {
 			tryCount++;
 			try {
-				scanner.scan("nl.nn.adapterframework");
+				scanner.scan("nl.nn.adapterframework", "nl.nn.ibistesttool");
 				success = true;
 			} catch(BeanDefinitionStoreException e) {
 				String excludeFilter = e.getMessage();
@@ -307,11 +330,16 @@ public class IbisDocPipe extends FixedForwardPipe {
 		} else if ("/ibisdoc/uglify_lookup.xml".equals(uri)) {
 			result = getUglifyLookup();
 			contentType = "application/xml";
+		} else if ("/ibisdoc/ibisdoc.json".equals(uri)) {
+			result = new IbisDocApp().getJson();
+			contentType = "application/json";
 		} else if ("/ibisdoc".equals(uri)) {
 			result = "<html>\n"
-					+ "  <a href=\"ibisdoc/ibisdoc.html\">ibisdoc.html</a><br/>\n"
+					+ "  <a href=\"ibisdoc/ibisdoc.html\">ibisdoc.html (deprecated)</a><br/>\n"
 					+ "  <a href=\"ibisdoc/ibisdoc.xsd\">ibisdoc.xsd</a><br/>\n"
 					+ "  <a href=\"ibisdoc/uglify_lookup.xml\">uglify_lookup.xml</a><br/>\n"
+					+ "  <a href=\"ibisdoc/ibisdoc.json\">ibisdoc.json</a><br/>\n"
+					+ "  <a href=\"../iaf/ibisdoc\">The new ibisdoc application</a><br/>\n"
 					+ "</html>";
 		} else if ("/ibisdoc/ibisdoc.html".equals(uri)) {
 			result = "<html>\n"
@@ -437,10 +465,14 @@ public class IbisDocPipe extends FixedForwardPipe {
 		return ibisBeans;
 	}
 
+	private static Set<IbisBean> getIbisBeans() {
+		return getIbisBeans(getGroups());
+	}
+
 	private static List<IbisMethod> getIbisMethods(IPipe pipe) throws PipeRunException {
 		DigesterXmlHandler digesterXmlHandler = new DigesterXmlHandler();
 		try {
-			XmlUtils.parseXml(digesterXmlHandler, Misc.resourceToString(ClassUtils.getResourceURL(pipe, "digester-rules.xml")));
+			XmlUtils.parseXml(digesterXmlHandler, Misc.resourceToString(ClassUtils.getResourceURL(IbisDocPipe.class, "digester-rules.xml")));
 		} catch (IOException e) {
 			throw new PipeRunException(pipe, "Could nog parse digester-rules.xml", e);
 		} catch (SAXException e) {
@@ -465,7 +497,13 @@ public class IbisDocPipe extends FixedForwardPipe {
 			} else {
 				sortWeight = IbisDocPipe.sortWeight;
 			}
-			Method[] classMethods = ibisBean.getClazz().getMethods();
+			Method[] classMethods;
+			try {
+				classMethods = ibisBean.getClazz().getMethods();
+			} catch (NoClassDefFoundError e) {
+				//TODO Why is it trying to resolve (sub) interfaces?
+				return;
+			}
 			Arrays.sort(classMethods, new Comparator<Method>() {
 				@Override
 				public int compare(Method m1, Method m2) {
@@ -494,7 +532,7 @@ public class IbisDocPipe extends FixedForwardPipe {
 								maxOccursX = -1;
 							}
 							addMaxOccurs(choice, maxOccursX);
-							
+
 							for (IbisBean childIbisBean : childIbisBeans) {
 								choice.addSubElement(getChildIbisBeanSchemaElement(childIbisBean.getName(), 1));
 							}
@@ -555,6 +593,14 @@ public class IbisDocPipe extends FixedForwardPipe {
 	private static void addPropertiesToSchemaOrHtml(IbisBean ibisBean, XmlBuilder beanComplexType,
 			StringBuffer beanHtml) {
 		Map<String, Method> beanProperties = getBeanProperties(ibisBean.getClazz());
+		String name = ibisBean.getName();
+		if (copyPropterties.containsKey(name)) {
+			for (IbisBean ibisBean2 : getIbisBeans()) {
+				if (copyPropterties.get(name).equals(ibisBean2.getName())) {
+					beanProperties.putAll(getBeanProperties(ibisBean2.getClazz()));
+				}
+			}
+		}
 		if (beanProperties != null) {
 			Iterator<String> iterator = new TreeSet<String>(beanProperties.keySet()).iterator();
 			while (iterator.hasNext()) {
@@ -562,7 +608,7 @@ public class IbisDocPipe extends FixedForwardPipe {
 				boolean exclude = false;
 				if (property.equals("name")) {
 					for (String filter : excludeNameAttribute) {
-						if (ibisBean.getName().endsWith(filter)) {
+						if (name.endsWith(filter)) {
 							exclude = true;
 						}
 					}
@@ -572,16 +618,18 @@ public class IbisDocPipe extends FixedForwardPipe {
 					if (beanComplexType != null) {
 						attribute = new XmlBuilder("attribute");
 						attribute.addAttribute("name", property);
-						attribute.addAttribute("type", "xs:string");
+//						attribute.addAttribute("type", "xs:string");
 						if (property.equals("name")) {
 							attribute.addAttribute("use", "required");
 						}
 						beanComplexType.addSubElement(attribute);
 					}
-					if (beanHtml != null) {
-						beanHtml.append("<tr><td>" + property + "</td>");
-					}
 					Method method = beanProperties.get(property);
+					if (beanHtml != null) {
+						beanHtml.append("<tr>");
+						beanHtml.append("<td>" + method.getDeclaringClass().getSimpleName() + "</td>");
+						beanHtml.append("<td>" + property + "</td>");
+					}
 					IbisDoc ibisDoc = AnnotationUtils.findAnnotation(method, IbisDoc.class);
 					if (ibisDoc != null) {
 						String[] ibisDocValues = ibisDoc.value();
@@ -595,6 +643,24 @@ public class IbisDocPipe extends FixedForwardPipe {
 							attribute.addSubElement(annotation);
 							annotation.addSubElement(documentation);
 							documentation.setValue(ibisDocValue);
+
+							IbisDocEnum ibisDocEnum = AnnotationUtils.findAnnotation(method, IbisDocEnum.class);
+							if (ibisDocEnum != null) {
+								XmlBuilder simpleType = new XmlBuilder("simpleType");
+								XmlBuilder restriction = new XmlBuilder("restriction");
+								restriction.addAttribute("base", "xs:string");
+
+								for (String str : ibisDocEnum.value()) {
+									XmlBuilder enumeration = new XmlBuilder("enumeration");
+									enumeration.addAttribute("value", str);
+									restriction.addSubElement(enumeration);
+								}
+
+								simpleType.addSubElement(restriction);
+								attribute.addSubElement(simpleType);
+							} else {
+								attribute.addAttribute("type", "xs:string");
+							}
 						}
 						if (beanHtml != null) {
 							String ibisDocValue = ibisDocValues[0];
@@ -642,7 +708,7 @@ public class IbisDocPipe extends FixedForwardPipe {
 		return ignore;
 	}
 
-	private static Map<String, Method> getBeanProperties(Class<?> clazz) {
+	static Map<String, Method> getBeanProperties(Class<?> clazz) {
 		Map<String, Method> result = new HashMap<String, Method>();
 		getBeanProperties(clazz, "set", result);
 		Set<String> remove = new HashSet<String>();
@@ -650,7 +716,7 @@ public class IbisDocPipe extends FixedForwardPipe {
 		getBeanProperties(clazz, "get", getMethods);
 		getBeanProperties(clazz, "is", getMethods);
 		for (String name : result.keySet()) {
-			if (!getMethods.containsKey(name)) {
+			if (!getMethods.containsKey(name) && !result.get(name).isAnnotationPresent(IbisDoc.class) && !result.get(name).isAnnotationPresent(IbisDocRef.class)) {
 				remove.add(name);
 			}
 		}
@@ -661,17 +727,22 @@ public class IbisDocPipe extends FixedForwardPipe {
 	}
 
 	private static void getBeanProperties(Class<?> clazz, String verb, Map<String, Method> beanProperties) {
-		Method[] methods = clazz.getMethods();
-		for (int i = 0; i < methods.length; i++) {
-			Class<?> returnType = methods[i].getReturnType();
-			if (returnType == String.class || returnType.isPrimitive()) {
-				if (methods[i].getName().startsWith(verb)) {
-					if (methods[i].getName().length() > verb.length()) {
-						beanProperties.put(methods[i].getName().substring(verb.length(), verb.length() + 1).toLowerCase()
-						+ methods[i].getName().substring(verb.length() + 1), methods[i]);
+		try {
+			Method[] methods = clazz.getMethods();
+			for (int i = 0; i < methods.length; i++) {
+				Class<?> returnType = methods[i].getReturnType();
+				if (returnType == String.class || returnType.isPrimitive()) {
+					if (methods[i].getName().startsWith(verb)) {
+						if (methods[i].getName().length() > verb.length()) {
+							beanProperties.put(methods[i].getName().substring(verb.length(), verb.length() + 1).toLowerCase()
+							+ methods[i].getName().substring(verb.length() + 1), methods[i]);
+						}
 					}
 				}
 			}
+		} catch (NoClassDefFoundError e) {
+			//TODO fix this, why are all (sub)interfaces also instantiated?
+			//Ignore classes that cannot be found...
 		}
 	}
 
@@ -683,16 +754,17 @@ public class IbisDocPipe extends FixedForwardPipe {
 			for (IbisBean ibisBean : groups.get(group)) {
 				String type = "";
 				String className = ibisBean.getClazz().getName();
+				String name = ibisBean.getName();
 				if (group.equals("Other")) {
-					type = ibisBean.getName().substring(0,  1).toLowerCase() + ibisBean.getName().substring(1);
-					if (!ibisBean.getName().equals("Receiver")) {
+					type = name.substring(0,  1).toLowerCase() + name.substring(1);
+					if (!name.equals("Receiver")) {
 						className = "";
 					}
 				} else {
 					type = group.substring(0,  1).toLowerCase() + group.substring(1, group.length() - 1);
 				}
 				result.append("  <Element>\n");
-				result.append("    <Name>" + ibisBean.getName() + "</Name>\n");
+				result.append("    <Name>" + name + "</Name>\n");
 				result.append("    <Type>" + type + "</Type>\n");
 				result.append("    <ClassName>" + className + "</ClassName>\n");
 				result.append("  </Element>\n");
@@ -707,6 +779,7 @@ public class IbisDocPipe extends FixedForwardPipe {
 		if (allHtml == null)  allHtml = new StringBuffer();
 		if (groupsHtml == null) groupsHtml = new HashMap<String, String>();
 		Map<String, TreeSet<IbisBean>> groups = getGroups();
+
 		for (String group : groups.keySet()) {
 			topmenuHtml.append("<a href='" + group + ".html' target='submenuFrame'>" + group + "</a><br/>\n");
 			StringBuffer submenuHtml = new StringBuffer();
@@ -732,142 +805,18 @@ public class IbisDocPipe extends FixedForwardPipe {
 
 	private static String getBeanHtml(String beanName) {
 		Map<String, TreeSet<IbisBean>> groups = getGroups();
-		for (String group : groups.keySet()) {
-			for (IbisBean ibisBean : groups.get(group)) {
-				if (beanName.equals(ibisBean.getName())) {
-					StringBuffer result = new StringBuffer();
-					result.append(beanName);
-					result.append("<table border='1'>");
-					result.append("<tr><th>attributes</th><th>description</th><th>default</th></tr>");
-					addPropertiesToSchemaOrHtml(ibisBean, null, result);
-					result.append("</table>");
-					return result.toString();
-				}
+		for (IbisBean ibisBean : getIbisBeans()) {
+			if (beanName.equals(ibisBean.getName())) {
+				StringBuffer result = new StringBuffer();
+				result.append(beanName);
+				result.append("<table border='1'>");
+				result.append("<tr><th>class</th><th>attribute</th><th>description</th><th>default</th></tr>");
+				addPropertiesToSchemaOrHtml(ibisBean, null, result);
+				result.append("</table>");
+				return result.toString();
 			}
 		}
 		return null;
-	}
-
-}
-
-class SpringBean implements Comparable<Object> {
-	private String name;
-	private Class<?> clazz;
-	
-	SpringBean(String name, Class<?> clazz) {
-		this.name = name;
-		this.clazz = clazz;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public Class<?> getClazz() {
-		return clazz;
-	}
-
-	public int compareTo(Object o) {
-		return name.compareTo(((SpringBean)o).name);
-	}
-
-	@Override
-	public String toString() {
-		return name +  "[" + clazz.getName() + "]";
-	}
-}
-
-class IbisBean implements Comparable<IbisBean> {
-	private String name;
-	private Class<?> clazz;
-
-	IbisBean(String name, Class<?> clazz) {
-		this.name = name; 
-		this.clazz = clazz;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public Class<?> getClazz() {
-		return clazz;
-	}
-
-	public int compareTo(IbisBean ibisBean) {
-		return name.compareTo((ibisBean).name);
-	}
-
-	@Override
-	public String toString() {
-		return name +  "[" + clazz.getName() + "]";
-	}
-}
-
-class IbisMethod {
-	private String methodName; // E.g. registerAdapter
-	private String parameterName; // E.g. adapter
-	int maxOccurs = -1;
-
-	IbisMethod(String methodName, String parameterName) {
-		this.methodName = methodName;
-		this.parameterName = parameterName;
-		if (methodName.startsWith("set")) {
-			maxOccurs = 1;
-		} else if (!(methodName.startsWith("add") || methodName.startsWith("register"))) {
-			throw new RuntimeException("Unknow verb in method name: " + methodName);
-		}
-	}
-
-	public String getMethodName() {
-		return methodName;
-	}
-
-	public String getParameterName() {
-		return parameterName;
-	}
-
-	public int getMaxOccurs() {
-		return maxOccurs;
-	}
-
-	@Override
-	public String toString() {
-		return methodName +  "(" + parameterName + ")";
-	}
-}
-
-class DigesterXmlHandler extends DefaultHandler {
-	private String currentIbisBeanName;
-	private List<IbisMethod> ibisMethods = new ArrayList<IbisMethod>();
-
-	@Override
-	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-		if ("pattern".equals(qName)) {
-			String pattern = attributes.getValue("value");
-			StringTokenizer tokenizer = new StringTokenizer(pattern, "/");
-			while (tokenizer.hasMoreElements()) {
-				String token = tokenizer.nextToken();
-				if (!"*".equals(token)) {
-					currentIbisBeanName = token;
-				}
-			}
-		} else if ("set-next-rule".equals(qName)) {
-			String methodName = attributes.getValue("methodname");
-			ibisMethods.add(new IbisMethod(methodName, currentIbisBeanName));
-		}
-	}
-
-	@Override
-	public void endElement(String uri, String localName, String qName)
-			throws SAXException {
-		if ("pattern".equals(qName)) {
-			currentIbisBeanName = null;
-		}
-	}
-	
-	public List<IbisMethod> getIbisMethods() {
-		return ibisMethods;
 	}
 
 }

@@ -54,13 +54,6 @@ import org.apache.commons.lang.StringUtils;
  * <tr><th>name</th><th>type</th><th>remarks</th></tr>
  * <tr><td>filename</td><td>string</td><td>filename of the zip or zipentry.</td></tr>
  * </table>
- * <p><b>Exits:</b>
- * <table border="1">
- * <tr><th>state</th><th>condition</th></tr>
- * <tr><td>"success"</td><td>default</td></tr>
- * <tr><td><i>{@link #setForwardName(String) forwardName}</i></td><td>if specified</td></tr>
- * </table>
- * </p>
  *
  * @author  Gerrit van Brakel
  * @since   4.9.10
@@ -266,7 +259,7 @@ public class ZipWriterPipe extends FixedForwardPipe {
 		return zipWriterHandle;
 	}
 
-
+	@IbisDoc({"one of <ul><li>open: to open a new zip file or stream</li> <li>close: to close the zip file or stream</li> <li>write: write the input to the zip as a new entry</li> <li>stream: create a new zip entry, and provide an outputstream that another pipe can use to write the contents</li> </ul>", ""})
 	public void setAction(String string) {
 		action = string;
 	}

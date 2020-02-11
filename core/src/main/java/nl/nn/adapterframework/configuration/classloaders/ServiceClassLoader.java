@@ -1,5 +1,5 @@
 /*
-   Copyright 2016, 2018 Nationale-Nederlanden
+   Copyright 2016, 2018 - 2019 Nationale-Nederlanden
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,46 +16,42 @@
 package nl.nn.adapterframework.configuration.classloaders;
 
 import java.rmi.server.UID;
+import java.util.Map;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
-import nl.nn.adapterframework.configuration.IbisManager;
 import nl.nn.adapterframework.core.IAdapter;
 import nl.nn.adapterframework.core.IPipeLineSession;
 import nl.nn.adapterframework.core.PipeLineResult;
 import nl.nn.adapterframework.core.PipeLineSessionBase;
 
+/**
+ * ClassLoader that retrieves a configuration jar from an IBIS adapter
+ * The jar must be put in the sessionkey 'configurationJar'
+ * 
+ * @author Jaco de Groot
+ *
+ */
 public class ServiceClassLoader extends JarBytesClassLoader {
-	private IbisManager ibisManager;
 	private String adapterName;
-	private String configurationName;
 
-
-	public ServiceClassLoader(IbisManager ibisManager, String adapterName, String configurationName) throws ConfigurationException {
-		this(ibisManager, adapterName, configurationName, ServiceClassLoader.class.getClassLoader());
-	}
-
-	public ServiceClassLoader(IbisManager ibisManager, String adapterName, String configurationName, ClassLoader parent) throws ConfigurationException {
+	public ServiceClassLoader(ClassLoader parent) {
 		super(parent);
-		this.ibisManager = ibisManager;
-		this.adapterName = adapterName;
-		this.configurationName = configurationName;
-		reload();
 	}
 
 	@Override
-	public void reload() throws ConfigurationException {
-		super.reload();
+	protected Map<String, byte[]> loadResources() throws ConfigurationException {
 		if (adapterName == null) {
 			throw new ConfigurationException("Name of adapter to provide configuration jar not specified");
 		}
-		IAdapter adapter = ibisManager.getRegisteredAdapter(adapterName);
+		IAdapter adapter = getIbisContext().getIbisManager().getRegisteredAdapter(adapterName);
 		if (adapter != null) {
 			IPipeLineSession pipeLineSession = new PipeLineSessionBase();
-			PipeLineResult processResult = adapter.processMessage(getCorrelationId(), configurationName, pipeLineSession);
+			PipeLineResult processResult = adapter.processMessage(getCorrelationId(), getConfigurationName(), pipeLineSession);
+			//TODO check result of pipeline
 			Object object = pipeLineSession.get("configurationJar");
 			if (object != null) {
 				if (object instanceof byte[]) {
-					readResources((byte[])object, configurationName);
+					return readResources((byte[])object);
 				} else {
 					throw new ConfigurationException("SessionKey configurationJar not a byte array");
 				}
@@ -66,6 +62,10 @@ public class ServiceClassLoader extends JarBytesClassLoader {
 		} else {
 			throw new ConfigurationException("Could not find adapter: " + adapterName);
 		}
+	}
+
+	public void setAdapterName(String adapterName) {
+		this.adapterName = adapterName;
 	}
 
 	private String getCorrelationId() {

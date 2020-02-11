@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -75,7 +76,7 @@ public class RestServiceDispatcher  {
 	private static AppConstants appConstants = AppConstants.getInstance();
 	private static String etagCacheType = appConstants.getProperty("etag.cache.type", "ehcache");
 
-	private SortedMap patternClients=new TreeMap(new RestUriComparator());
+	private ConcurrentSkipListMap patternClients=new ConcurrentSkipListMap(new RestUriComparator());
 
 	private static RestServiceDispatcher self = null;
 	private static IApiCache cache = ApiCacheManager.getInstance();
@@ -137,7 +138,6 @@ public class RestServiceDispatcher  {
 	/**
 	 * Dispatch a request.
 	 * @param uri the name of the IReceiver object
-	 * @param method the correlationId of this request;
 	 * @param request the <code>String</code> with the request/input
 	 * @return String with the result of processing the <code>request</code> through the <code>serviceName</code>
 	 */
@@ -153,12 +153,9 @@ public class RestServiceDispatcher  {
 				noImageAvailable(httpServletResponse);
 				return "";
 			}
-			if (uri != null && (uri.equals("/showConfigurationStatus")
-					|| uri.startsWith("/showConfigurationStatus/"))) {
-				log.info("no REST listener configured for uri [" + uri
-						+ "], if REST listener does exist then trying to restart");
-				if (RestListenerUtils
-						.restartShowConfigurationStatus(servletContext)) {
+			if (uri != null && (uri.equals("/showConfigurationStatus") || uri.startsWith("/showConfigurationStatus/"))) {
+				log.info("no REST listener configured for uri [" + uri + "], if REST listener does exist then trying to restart");
+				if (RestListenerUtils.restartShowConfigurationStatus(servletContext)) {
 					httpServletResponse.setHeader("REFRESH", "0");
 					return "";
 				} else {
@@ -356,7 +353,7 @@ public class RestServiceDispatcher  {
 		try {
 			CreateRestViewPipe pipe = new CreateRestViewPipe();
 			pipe.setStyleSheetName("xml/xsl/web/noIbisContext.xsl");
-			pipe.setXslt2(true);
+			//pipe.setXslt2(true);
 			PipeForward pipeForward = new PipeForward();
 			pipeForward.setName("success");
 			pipe.registerForward(pipeForward);

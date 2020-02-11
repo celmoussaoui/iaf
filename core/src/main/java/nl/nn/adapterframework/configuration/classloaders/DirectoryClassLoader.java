@@ -1,5 +1,5 @@
 /*
-   Copyright 2016, 2018 Nationale-Nederlanden
+   Copyright 2016, 2018-2019 Nationale-Nederlanden
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,66 +18,69 @@ package nl.nn.adapterframework.configuration.classloaders;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
+import nl.nn.adapterframework.configuration.IbisContext;
 import nl.nn.adapterframework.util.AppConstants;
-import nl.nn.adapterframework.util.LogUtil;
 
-import org.apache.log4j.Logger;
+public class DirectoryClassLoader extends ClassLoaderBase {
+	private File directory = null;
 
-public class DirectoryClassLoader extends ClassLoader {
-	private Logger log = LogUtil.getLogger(this);
-	private List<File> directories;
-
-	public DirectoryClassLoader(String directory) throws ConfigurationException {
-		this(directory, DirectoryClassLoader.class.getClassLoader());
+	public DirectoryClassLoader(ClassLoader parent) throws ConfigurationException {
+		super(parent);
 	}
 
-	public DirectoryClassLoader(String directory, ClassLoader parent) throws ConfigurationException {
-		super(parent);
+	@Override
+	public void configure(IbisContext ibisContext, String configurationName) throws ConfigurationException {
+		super.configure(ibisContext, configurationName);
+
 		if (directory == null) {
 			AppConstants appConstants = AppConstants.getInstance();
 			String configurationsDirectory = appConstants.getResolvedProperty("configurations.directory");
 			if (configurationsDirectory == null) {
 				throw new ConfigurationException("Could not find property configurations.directory");
 			}
-			retrieveDirectories(configurationsDirectory);
-		} else {
-			retrieveDirectories(directory);
+
+			setDirectory(configurationsDirectory);
+		}
+
+		if(getBasePath() != null) { //Append BasePath, because legacy
+			directory = new File(directory, getBasePath()); //Append BasePath, because legacy
+			log.debug("appending basepath ["+getBasePath()+"] to directory ["+directory+"]");
+		}
+
+		if (!this.directory.isDirectory()) {
+			throw new ConfigurationException("Could not find directory to load configuration from: " + this.directory);
 		}
 	}
 
-	private void retrieveDirectories(String directoriesString) throws ConfigurationException {
-		directories = new ArrayList<File>();
-		List<String> directoriesStringAsList = Arrays.asList(directoriesString.split(","));
-		boolean existingDir = false;
-		for (String directoryString : directoriesStringAsList) {
-			File directory = new File(directoryString);
-			if (directory.isDirectory()) {
-				existingDir = true;
-			}
-			directories.add(directory);
-		}
-		if (!existingDir) {
-			throw new ConfigurationException("Could not find directory to load configuration from: " + directoriesString);
-		}
+	/**
+	 * Set the directory from which the configuration files should be loaded
+	 * @throws ConfigurationException if the directory can't be found
+	 */
+	public void setDirectory(String directory) throws ConfigurationException {
+		File dir = new File(directory);
+		if(!dir.isDirectory())
+			throw new ConfigurationException("directory ["+directory+"] not found");
+
+		this.directory = dir;
 	}
-	
+
+	protected File getDirectory() {
+		return this.directory;
+	}
+
 	@Override
-	public URL getResource(String name) {
-		for (File directory: directories) {
-			File file = new File(directory, name);
-			if (file.exists()) {
-				try {
-					return file.toURI().toURL();
-				} catch (MalformedURLException e) {
-					log.error("Could not create url for '" + name + "'", e);
-				}
+	public URL getLocalResource(String name) {
+		File file = new File(directory, name);
+		if (file.exists()) {
+			try {
+				return file.toURI().toURL();
+			} catch (MalformedURLException e) {
+				log.error("Could not create url for '" + name + "'", e);
 			}
 		}
-		return super.getResource(name);
+
+		return null;
 	}
 }

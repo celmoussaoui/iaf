@@ -158,7 +158,7 @@ public class Wsdl {
         }
 		//isMixedValidator = inputValidator.isMixedValidator(outputValidator);
         String fileName = getName();
-        AppConstants appConstants = AppConstants.getInstance();
+        AppConstants appConstants = AppConstants.getInstance(pipeLine.getAdapter().getConfigurationClassLoader());
         String tns = appConstants.getResolvedProperty("wsdl." + getName() + ".targetNamespace");
         if (tns == null) {
             tns = appConstants.getResolvedProperty("wsdl.targetNamespace");
@@ -451,11 +451,9 @@ public class Wsdl {
             // validated. In this case we use the serviceNamespaceURI from
             // the WebServiceListener as the namespace for the schema.
             XSD xsd = new XSD();
-            xsd.setClassLoader(pipeLine.getAdapter().getConfiguration().getClassLoader());
-            xsd.setNamespace(webServiceListenerNamespace);
-            xsd.setResource(inputSchema);
+            //xsd.setNamespace(webServiceListenerNamespace);
             xsd.setAddNamespaceToSchema(true);
-            xsd.init();
+            xsd.initNamespace(webServiceListenerNamespace, pipeLine.getAdapter().getConfiguration().getClassLoader(), inputSchema);
             xsds.add(xsd);
         } else {
             xsds = xmlValidator.getXsds();
@@ -842,7 +840,7 @@ public class Wsdl {
                         w.writeCharacters("externalJndiName-for-"
                                 + listener.getQueueConnectionFactoryName()
                                 + "-on-"
-                                + AppConstants.getInstance().getResolvedProperty("otap.stage"));
+                                + AppConstants.getInstance().getResolvedProperty("dtap.stage"));
                         w.writeEndElement();
                     }
                     w.writeStartElement(ESB_SOAP_JMS_NAMESPACE, "targetAddress"); {
@@ -852,7 +850,7 @@ public class Wsdl {
                         if (queueName == null) {
                             queueName = "queueName-for-"
                                     + listener.getDestinationName() + "-on-"
-                                    + AppConstants.getInstance().getResolvedProperty("otap.stage");
+                                    + AppConstants.getInstance().getResolvedProperty("dtap.stage");
                         }
                         w.writeCharacters(queueName);
                         w.writeEndElement();
@@ -885,14 +883,14 @@ public class Wsdl {
                         warn("Could not encode queueConnectionFactoryName for listener '" + listener.getName() + "'");
                     }
                 }
-                String stage = AppConstants.getInstance().getResolvedProperty("otap.stage");
+                String stage = AppConstants.getInstance().getResolvedProperty("dtap.stage");
                 if (StringUtils.isEmpty(stage)) {
-                    warn("Property otap.stage empty");
+                    warn("Property dtap.stage empty");
                 } else {
                     try {
                         stage = URLEncoder.encode(stage, "UTF-8");
                     } catch (UnsupportedEncodingException e) {
-                        warn("Could not encode property otap.stage");
+                        warn("Could not encode property dtap.stage");
                     }
                 }
                 w.writeCharacters("tibjmsnaming://host-for-" + qcf + "-on-"
