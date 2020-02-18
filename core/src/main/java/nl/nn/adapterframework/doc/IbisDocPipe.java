@@ -404,7 +404,7 @@ public class IbisDocPipe extends FixedForwardPipe {
 		return new PipeRunResult(getForward(), result);
 	}
 
-	private String getSchema() throws PipeRunException {
+	public String getSchema() throws PipeRunException {
 		XmlBuilder schema;
 		XmlBuilder element;
 		XmlBuilder complexType;
