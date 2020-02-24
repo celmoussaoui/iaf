@@ -118,6 +118,15 @@ public class AClass {
                 aMethod.setReferredClassName(getReferredClassName());
 
                 newClass.addMethod(aMethod);
+            } else {
+                System.out.println("Adding method [" + property + "] to class [" + newClass.getClazz().getSimpleName() + "]");
+                aMethod.setOriginalClassName(method.getDeclaringClass().getSimpleName());
+                aMethod.setDescription("");
+                aMethod.setDefaultValue("");
+                aMethod.setOrder(999);
+                aMethod.setDeprecated(false);
+                aMethod.setReferredClassName(getReferredClassName());
+                newClass.addMethod(aMethod);
             }
         }
         newClass.setSuperclasses(getReferredClassName());
